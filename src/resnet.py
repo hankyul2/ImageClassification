@@ -57,6 +57,12 @@ class ResNet(nn.Module):
             x = layer(x)
         return self.fc(self.flatten(self.avgpool(x)))
 
+    def predict(self, x):
+        x = self.maxpool(self.relu(self.bn1(self.conv1(x))))
+        for layer in self.layers:
+            x = layer(x)
+        return self.fc(self.flatten(self.avgpool(x)))
+
 
 def get_resnet(model_name: str, nclass=1000, zero_init_residual=False, pretrained=False, dataset=None) -> nn.Module:
     if model_name == 'resnet18':
