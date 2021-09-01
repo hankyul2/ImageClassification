@@ -46,7 +46,7 @@ def run(args):
     # step 2. load model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = get_resnet(args.model_name, nclass=len(train_ds.classes),
-                       zero_init_residual=False, pretrained=args.pretrained_path).to(device)
+                       zero_init_residual=False).to(device)
 
     # step 3. prepare training tool
     criterion = nn.CrossEntropyLoss()

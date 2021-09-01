@@ -78,7 +78,7 @@ def get_resnet(model_name: str, nclass=1000, zero_init_residual=False, pretraine
     resnet_zero_init(model, zero_init_residual)
 
     if pretrained:
-        load_from_zoo(model, model_name, pretrained)
+        load_from_zoo(model, model_name)
 
     if dataset:
         pass

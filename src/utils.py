@@ -18,7 +18,7 @@ model_urls = {
 }
 
 
-def load_from_zoo(model, model_name, pretrained_path):
+def load_from_zoo(model, model_name, pretrained_path='pretrained'):
     Path(os.path.join(pretrained_path, model_name)).mkdir(parents=True, exist_ok=True)
     state_dict = load_state_dict_from_url(url=model_urls[model_name],
                                           model_dir=os.path.join(pretrained_path, model_name),
