@@ -30,7 +30,7 @@ def test_arg2result():
         'batch_size': 128
     })
     model = edict({
-        'start_time': '2021-09-01/10:06:40',
+        'time': '2021-09-01/10:06:40',
         'best_acc': torch.tensor(50.0).item(),
         'best_epoch': 110,
         'log_best_weight_path': 'log/best_weight/...'
@@ -53,7 +53,7 @@ def test_save_result():
         'batch_size': 128
     })
     model = edict({
-        'start_time': '2021-09-01/10:06:40',
+        'time': '2021-09-01/10:06:40',
         'best_acc': torch.tensor(50.0).item(),
         'best_epoch': 110,
         'log_best_weight_path': 'log/best_weight/...'
@@ -72,7 +72,7 @@ def test_update_best_result():
         'batch_size': 128
     })
     model = edict({
-        'start_time': '2021-09-01/10:06:40',
+        'time': '2021-09-01/10:06:40',
         'best_acc': torch.tensor(50.0).item(),
         'best_epoch': 110,
         'log_best_weight_path': 'log/best_weight/...'
@@ -105,7 +105,7 @@ def test_get_same_type():
         'batch_size': 128
     })
     model = edict({
-        'start_time': '2021-09-01/10:06:40',
+        'time': '2021-09-01/10:06:40',
         'best_acc': torch.tensor(50.0).item(),
         'best_epoch': 110,
         'log_best_weight_path': 'log/best_weight/...'
@@ -155,7 +155,7 @@ def test_get_best_pretrained_model_path():
         'batch_size': 128
     })
     model = edict({
-        'start_time': '2021-09-01/10:06:40',
+        'time': '2021-09-01/10:06:40',
         'best_acc': torch.tensor(50.0).item(),
         'best_epoch': 110,
         'log_best_weight_path': 'log/best_weight/...'

@@ -25,7 +25,7 @@ class Result:
         self.best_result_save_path = best_result_path
 
         # Todo: Change This whenever you apply this utils to other domain
-        self.headers = ['no', 'model_name', 'dataset', 'start_time', 'best_acc', 'best_epoch', 'nepoch',
+        self.headers = ['no', 'model_name', 'dataset', 'time', 'best_acc', 'best_epoch', 'nepoch',
                         'lr', 'batch_size', 'log_best_weight_path']
         self.best_result_identity_name = 'model_name'
         self.best_result_column_idx = [1, 2]
