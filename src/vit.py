@@ -122,11 +122,11 @@ class VIT(nn.Module):
         return self.encoder(self.embed(x))
 
 
-def get_vit(img_size=(224, 224), patch_size=(16, 16), d_model=512, h=8, d_ff=2048, N=3, nclass=1000):
+def get_vit(img_size=(224, 224), patch_size=(16, 16), d_model=512, h=8, d_ff=2048, N=3, nclass=1000, dropout=0.1):
     c = copy.deepcopy
-    embed = Embedding(img_size=img_size, patch_size=patch_size, d_model=d_model)
-    attn = MultiHeadAttention(d_model=d_model, h=h)
-    ff = FeedForward(d_model=d_model, d_ff=d_ff)
+    embed = Embedding(img_size=img_size, patch_size=patch_size, d_model=d_model, dropout=dropout)
+    attn = MultiHeadAttention(d_model=d_model, h=h, dropout=dropout)
+    ff = FeedForward(d_model=d_model, d_ff=d_ff, dropout=dropout)
     su = SublayerConnection(d_model=d_model)
     mlp_head = nn.Linear(d_model, nclass)
     vit = VIT(embed=embed, encoder=Encoder(EncoderLayer(c(attn), c(ff), c(su)), N), mlp_head=mlp_head)
