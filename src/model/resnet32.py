@@ -1,7 +1,7 @@
 from typing import Type, Union
 from torch import nn
 
-from src.conv_block import BasicBlock, BottleNeck, conv1x1, resnet_normal_init, resnet_zero_init
+from src.model.layers.conv_block import BasicBlock, BottleNeck, conv1x1, resnet_normal_init, resnet_zero_init
 
 
 class ResNet32(nn.Module):

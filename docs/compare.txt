@@ -1,0 +1,6 @@
+weight init
+representation layer (pre_logits)
+distillated token
+dropout rate
+
+naming rule 통일

@@ -3,7 +3,7 @@ from torch import nn
 from torch.optim import SGD
 import torch.optim.lr_scheduler as LR
 
-from src.resnet import get_resnet
+from src.model.models import get_model
 from src.base_model_wrapper import BaseModelWrapper
 from src.cifar import get_cifar, convert_to_dataloader
 from src.log import get_log_name, Result
@@ -45,8 +45,11 @@ def run(args):
 
     # step 2. load model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = get_resnet(args.model_name, nclass=len(train_ds.classes),
-                       zero_init_residual=False).to(device)
+    model = get_model(args.model_name, nclass=len(train_ds.classes)).to(device)
+    print(model)
+    for name, param in model.named_parameters():
+        print('name: {}, param shape: {}'.format(name, param.shape))
+    assert False
 
     # step 3. prepare training tool
     criterion = nn.CrossEntropyLoss()
