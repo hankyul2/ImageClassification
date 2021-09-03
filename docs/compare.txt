@@ -1,6 +1,20 @@
-weight init
-representation layer (pre_logits)
-distillated token
-dropout rate
+Timm Library 구현체와 차이점 
+0. linear layer projection -> conv layer projection : 변경
+1. droputout -> drop path : 무시
+2. relu -> gelu : 변경
+3. representation layer를 추가하는 경우도 고려 : 무시
+4. norm layer를 LayerNorm이 아닌 경우도 고려 : 무시
+5. distillation을 하는 경우도 고려 : 무시
+6. timm library weight init method :
+- conv/weight, bias : kaiming_uniform_ -> lecun_normal, zero
+- cls token : uniform -> trunc_normal_(std=0.2)
+- pos_embeding : uniform -> trucn_normal_(std=0.2)
+	- q, k, v, linear_projection/weight, bias : xavier_uniform,zero -> trunc_normal, zero
+	- w1, w2/weight, bias :  xavier_uniform,zero -> trunc_normal, zero
+	- norm_layer/a_2, b_2 : zero, one
+- norm_layer/a_2, b_2 : zero, one
+- mlp_head/weight, bias : xavier_uniform,zero -> zero, zero
+*trunc_normal_() is re-sampling outside values repeatly by normal pdf* 
 
-naming rule 통일
+
+

@@ -3,7 +3,7 @@ import copy
 
 from torch import nn
 
-from src.model.layers.embed import BasicLinearProjection, get_patch_num_and_dim, ConvLinearProjection, TokenLayer, \
+from src.model.layers.embed import get_patch_num_and_dim, ConvLinearProjection, TokenLayer, \
     PositionalEncoding
 from src.model.vit import MultiHeadAttention, FeedForward, Encoder, EncoderLayer, \
     SublayerConnection, build_vit, get_vit

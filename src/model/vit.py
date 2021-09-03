@@ -1,5 +1,6 @@
 import math
 
+import torch
 from einops import rearrange
 from torch import nn
 import torch.nn.functional as F
@@ -40,10 +41,22 @@ class FeedForward(nn.Module):
         return self.w2(self.dropout(F.relu(self.w1(x))))
 
 
+class LayerNorm(nn.Module):
+    def __init__(self, d_model, eps=1e-6):
+        super(LayerNorm, self).__init__()
+        self.a_2 = nn.Parameter(torch.ones(d_model))
+        self.b_2 = nn.Parameter(torch.zeros(d_model))
+        self.eps = eps
+
+    def forward(self, x):
+        mean, std = x.mean(dim=-1, keepdim=True), x.std(dim=-1, keepdim=True)
+        return self.a_2 * (x - mean) / (std + self.eps) + self.b_2
+
+
 class SublayerConnection(nn.Module):
     def __init__(self, d_model, dropout=0.1):
         super(SublayerConnection, self).__init__()
-        self.norm = nn.LayerNorm(d_model)
+        self.norm = LayerNorm(d_model)
         self.dropout = nn.Dropout(p=dropout)
 
     def forward(self, x, layer):
@@ -66,7 +79,7 @@ class Encoder(nn.Module):
     def __init__(self, encoder, d_model, n):
         super(Encoder, self).__init__()
         self.layers = clone(encoder, n)
-        self.norm = nn.LayerNorm(d_model)
+        self.norm = LayerNorm(d_model)
 
     def forward(self, x):
         for layer in self.layers:
@@ -93,7 +106,8 @@ class VIT(nn.Module):
         return self.encoder(self.embed(x))
 
 
-def build_vit(img_size=(224, 224), patch_size=(16, 16), d_model=512, h=8, d_ff=2048, N=6, nclass=1000, dropout=0.1, in_channel=3):
+def build_vit(img_size=(224, 224), patch_size=(16, 16), d_model=512, h=8, d_ff=2048, N=6, nclass=1000, dropout=0.1,
+              in_channel=3):
     c = copy.deepcopy
     patch_num, patch_dim = get_patch_num_and_dim(img_size, patch_size, in_channel)
     linear_projection = ConvLinearProjection(d_model=d_model, patch_size=patch_size, in_channel=in_channel)
@@ -109,10 +123,15 @@ def build_vit(img_size=(224, 224), patch_size=(16, 16), d_model=512, h=8, d_ff=2
               mlp_head=mlp_head)
 
     for name, param in vit.named_parameters():
-        if param.dim() > 1:
+        if param.dim() > 2:
+            nn.init.kaiming_normal_(param)
+        elif param.dim() > 1:
             nn.init.xavier_uniform_(param)
+        elif 'bias' in name:
+            nn.init.zeros_(param)
 
     return vit
+
 
 def get_vit(model_name, nclass=1000):
     if model_name == 'vit_base':
