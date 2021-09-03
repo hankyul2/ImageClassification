@@ -29,8 +29,8 @@ model_urls = {
     'vit_large_patch32_224': 'https://storage.googleapis.com/vit_models/imagenet21k/ViT-L_32.npz',
 
     # Hybrid (resnet50 + ViT)
-    'R50_vit_base_patch16_224': 'https://storage.googleapis.com/vit_models/imagenet21k/R50+ViT-B_16.npz',
-    'R50_vit_large_patch32_224': 'https://storage.googleapis.com/vit_models/imagenet21k/R50+ViT-L_32.npz',
+    'r50_vit_base_patch16_224': 'https://storage.googleapis.com/vit_models/imagenet21k/R50+ViT-B_16.npz',
+    'r50_vit_large_patch32_224': 'https://storage.googleapis.com/vit_models/imagenet21k/R50+ViT-L_32.npz',
 }
 
 

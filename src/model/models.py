@@ -8,7 +8,7 @@ def get_model(model_name: str, nclass: int, **kwargs):
         model = get_resnet32(model_name, nclass, **kwargs)
     elif model_name.startswith('resnet'):
         model = get_resnet(model_name, nclass, **kwargs)
-    elif model_name.startswith('vit') or model_name.startswith('R'):
+    elif model_name.startswith('vit') or model_name.startswith('r50'):
         model = get_vit(model_name, nclass, **kwargs)
 
     return model
