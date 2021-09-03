@@ -16,5 +16,17 @@ Timm Library 구현체와 차이점
 - mlp_head/weight, bias : xavier_uniform,zero -> zero, zero
 *trunc_normal_() is re-sampling outside values repeatly by normal pdf* 
 
+model_weight
+model: 
+r50+vit-b_16, r50+vit-l_16,
+vit-b_16, vit-b_32, 
+vit_l_16, vit_l_32
+pretrained on: imagenet21k, imagenet, cifar10, cifar100
+
+check how to fine-tuning on dataset
+
+goal : dropout=0.1 일 때의 성능 나오게 하기
+
+
 
 

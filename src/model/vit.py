@@ -1,14 +1,43 @@
 import math
 
 import torch
-from einops import rearrange
+from einops import rearrange, repeat
 from torch import nn
 import torch.nn.functional as F
 
 import copy
 
-from src.model.layers.embed import ConvLinearProjection, TokenLayer, PositionalEncoding, get_patch_num_and_dim
-from src.model.model_utils import clone
+
+def is_pair(img_size):
+    return img_size if isinstance(img_size, tuple) else (img_size, img_size)
+
+
+def clone(layer, N):
+    return nn.ModuleList([copy.deepcopy(layer) for _ in range(N)])
+
+
+class Embedding(nn.Module):
+    def __init__(self, d_model=512, img_size=(224, 224), patch_size=(16, 16), in_channel=3, dropout=0.1):
+        super(Embedding, self).__init__()
+        i_h, i_w = is_pair(img_size)
+        p_h, p_w = is_pair(patch_size)
+        patch_num = (i_h // p_h) * (i_w // p_w)
+        assert i_h % p_h == 0 and i_w % p_w == 0
+
+        self.linear_projection = nn.Conv2d(in_channel, d_model, p_h, p_h)
+        self.img2patch = lambda x: rearrange(x, 'b e p q -> b (p q) e')
+        self.cls_token = nn.Parameter(torch.rand((1, 1, d_model,)))
+        self.pad_cls_token = lambda x: torch.cat([repeat(self.cls_token, '1 1 d -> b 1 d', b=x.size(0)), x], dim=1)
+        self.pe = nn.Parameter(torch.rand(patch_num + 1, d_model))
+        self.add_positional_encoding = lambda x: x + self.pe[:x.size(1)].unsqueeze(0)
+        self.dropout = nn.Dropout(p=dropout)
+
+    def forward(self, x):
+        x = self.linear_projection(x)
+        x = self.img2patch(x)
+        x = self.pad_cls_token(x)
+        xx = self.add_positional_encoding(x)
+        return self.dropout(x)
 
 
 class MultiHeadAttention(nn.Module):
@@ -106,21 +135,16 @@ class VIT(nn.Module):
         return self.encoder(self.embed(x))
 
 
-def build_vit(img_size=(224, 224), patch_size=(16, 16), d_model=512, h=8, d_ff=2048, N=6, nclass=1000, dropout=0.1,
-              in_channel=3):
+def build_vit(img_size=(224, 224), patch_size=(16, 16), d_model=512, h=8, d_ff=2048, N=6,
+              nclass=1000, dropout=0.1, in_channel=3):
     c = copy.deepcopy
-    patch_num, patch_dim = get_patch_num_and_dim(img_size, patch_size, in_channel)
-    linear_projection = ConvLinearProjection(d_model=d_model, patch_size=patch_size, in_channel=in_channel)
-    token_layer = TokenLayer(d_model=d_model)
-    positional_encoding = PositionalEncoding(patch_num, d_model, dropout)
+    embed = Embedding(d_model=d_model, img_size=img_size, patch_size=patch_size, in_channel=in_channel, dropout=dropout)
     attn = MultiHeadAttention(d_model=d_model, h=h, dropout=dropout)
     ff = FeedForward(d_model=d_model, d_ff=d_ff, dropout=dropout)
     su = SublayerConnection(d_model=d_model)
     mlp_head = nn.Linear(d_model, nclass)
 
-    vit = VIT(embed=nn.Sequential(linear_projection, token_layer, positional_encoding),
-              encoder=Encoder(EncoderLayer(c(attn), c(ff), c(su)), d_model, N),
-              mlp_head=mlp_head)
+    vit = VIT(embed=embed, encoder=Encoder(EncoderLayer(c(attn), c(ff), c(su)), d_model, N), mlp_head=mlp_head)
 
     for name, param in vit.named_parameters():
         if param.dim() > 2:

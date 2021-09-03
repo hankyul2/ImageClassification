@@ -2,7 +2,9 @@ from einops import rearrange, repeat
 from torch import nn
 import torch
 
-from src.model.model_utils import is_pair
+
+def is_pair(img_size):
+    return img_size if isinstance(img_size, tuple) else (img_size, img_size)
 
 
 def get_patch_num_and_dim(img_size, patch_size, in_channel=3):
