@@ -25,6 +25,8 @@ pretrained on: imagenet21k, imagenet
 
 imagenet21k pretrained 된 모델 가지고 imagenet, cifar10, cifar100에서 성능 내보기
 goal : dropout=0.1 일 때의 성능 나오게 하기
+공식 학습 결과 : https://github.com/google-research/vision_transformer
+공식 학습 방법 : https://github.com/google-research/vision_transformer#fine-tuning-a-model
 
 추가 도전 : imageNet을 384x384로 학습했을 때의 성능 변화 관찰하기
 내가 이해한 2D interpolation의 의미

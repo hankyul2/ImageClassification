@@ -44,12 +44,18 @@ def load_from_zoo(model, model_name, pretrained_path='pretrained_path'):
     elif model_urls[model_name].endswith('npz'):
         npz = load_npz_from_url(url=model_urls[model_name],
                                 file_name=os.path.join(pretrained_path, model_name, os.path.basename(model_urls[model_name])))
-        print(npz)
+        model.load_npz(npz)
 
 
 def load_npz_from_url(url, file_name):
     subprocess.run(["wget", "-r", "-nc", '-O', file_name, url])
     return np.load(file_name)
+
+
+def download_dataset(data_path):
+    Path(data_path).mkdir(exist_ok=True, parents=True)
+    CIFAR10(root=data_path, download=True)
+    CIFAR100(root=data_path, download=True)
 
 
 class AverageMeter(object):
@@ -109,9 +115,3 @@ def accuracy(output, target, topk=(1,)):
             correct_k = correct[:k].reshape(-1).float().sum(0, keepdim=True)
             res.append(correct_k.mul_(100.0 / batch_size))
         return res
-
-
-def download_dataset(data_path):
-    Path(data_path).mkdir(exist_ok=True, parents=True)
-    CIFAR10(root=data_path, download=True)
-    CIFAR100(root=data_path, download=True)

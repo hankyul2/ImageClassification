@@ -2,10 +2,12 @@ import math
 
 import torch
 from einops import rearrange, repeat
+from numpy.testing._private.parameterized import param
 from torch import nn
 import torch.nn.functional as F
 
 import copy
+import re
 
 from src.utils import load_from_zoo
 
@@ -30,8 +32,8 @@ class Embedding(nn.Module):
         self.img2patch = lambda x: rearrange(x, 'b e p q -> b (p q) e')
         self.cls_token = nn.Parameter(torch.rand((1, 1, d_model,)))
         self.pad_cls_token = lambda x: torch.cat([repeat(self.cls_token, '1 1 d -> b 1 d', b=x.size(0)), x], dim=1)
-        self.pe = nn.Parameter(torch.rand(patch_num + 1, d_model))
-        self.add_positional_encoding = lambda x: x + self.pe[:x.size(1)].unsqueeze(0)
+        self.pe = nn.Parameter(torch.rand(1, patch_num + 1, d_model))
+        self.add_positional_encoding = lambda x: x + self.pe[:, :x.size(1)]
         self.dropout = nn.Dropout(p=dropout)
 
     def forward(self, x):
@@ -51,14 +53,14 @@ class MultiHeadAttention(nn.Module):
 
         self.qkv = clone(layer=nn.Linear(d_model, d_model), N=3)
         self.dropout = nn.Dropout(p=dropout)
-        self.proj = nn.Linear(d_model, d_model)
+        self.out = nn.Linear(d_model, d_model)
 
     def forward(self, q, k, v):
         q, k, v = [rearrange(f(x), 'b s (h k) -> b h s k', k=self.d_k) for f, x in zip(self.qkv, [q, k, v])]
         score = q @ k.transpose(-1, -2) / self.scale
         attn = self.dropout(F.softmax(score, dim=-1))
         v_concat = rearrange(attn @ v, 'b h s k -> b s (h k)')
-        return self.proj(v_concat)
+        return self.out(v_concat)
 
 
 class FeedForward(nn.Module):
@@ -118,6 +120,24 @@ class Encoder(nn.Module):
         return self.norm(x)
 
 
+def dim_convertor(name, weight):
+    weight = torch.from_numpy(weight)
+    if 'kernel' in name:
+        if weight.dim() == 2:
+            weight = rearrange(weight, 'in out -> out in')
+        elif weight.dim() == 3:
+            if 'out' in name:
+                weight = rearrange(weight, 'h k d -> d (h k)')
+            else:
+                weight = rearrange(weight, 'd h k -> (h k) d')
+        elif weight.dim() == 4:
+            weight = rearrange(weight, 'h w in_c out_c -> out_c in_c h w')
+    elif 'bias' in name:
+        if weight.dim() == 2:
+            weight = rearrange(weight, 'h k -> (h k)')
+    return weight
+
+
 class VIT(nn.Module):
     def __init__(self, embed, encoder, mlp_head):
         super(VIT, self).__init__()
@@ -135,6 +155,23 @@ class VIT(nn.Module):
 
     def encode(self, x):
         return self.encoder(self.embed(x))
+
+    def load_npz(self, npz):
+        name_convertor = [
+            ('embed.cls_token', 'cls'), ('embed.linear_projection', 'embedding'),
+            ('embed.pe', 'Transformer/posembed_input/pos_embedding'),
+            ('s.0.norm', 'LayerNorm_0'), ('s.1.norm', 'LayerNorm_2'), ('a_2', 'scale'), ('b_2', 'bias'),
+            ('encoder', 'Transformer'), ('layers.', 'encoderblock_'), ('norm', 'encoder_norm'),
+            ('weight', 'kernel'), ('ff', 'MlpBlock_3'), ('w1', 'Dense_0'), ('w2', 'Dense_1'),
+            ('attn', 'MultiHeadDotProductAttention_1'), ('qkv.0', 'query'), ('qkv.1', 'key'), ('qkv.2', 'value'), ('\\.', '/')
+        ]
+        for name, param in self.named_parameters():
+            if 'head' in name:
+                continue
+            for pattern, sub in name_convertor:
+                name = re.sub(pattern, sub, name)
+            param.data.copy_(dim_convertor(name, npz.get(name)))
+
 
 
 def build_vit(d_model=512, h=8, d_ff=2048, N=6, patch_size=(16, 16), img_size=(224, 224),
