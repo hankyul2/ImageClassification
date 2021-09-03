@@ -71,7 +71,7 @@ class FeedForward(nn.Module):
         self.dropout = nn.Dropout(p=dropout)
 
     def forward(self, x):
-        return self.w2(self.dropout(F.relu(self.w1(x))))
+        return self.w2(self.dropout(F.gelu(self.w1(x))))
 
 
 class LayerNorm(nn.Module):
