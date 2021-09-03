@@ -40,6 +40,8 @@ def load_from_zoo(model, model_name, pretrained_path='pretrained_path'):
         state_dict = load_state_dict_from_url(url=model_urls[model_name],
                                               model_dir=os.path.join(pretrained_path, model_name),
                                               progress=True, map_location='cpu')
+        state_dict.pop('fc.weight')
+        state_dict.pop('fc.bias')
         model.load_state_dict(state_dict, strict=False)
     elif model_urls[model_name].endswith('npz'):
         npz = load_npz_from_url(url=model_urls[model_name],
