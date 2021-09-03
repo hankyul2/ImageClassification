@@ -24,6 +24,7 @@ parser.add_argument('-l', '--lr', type=float, default=3e-4, help='Enter learning
 parser.add_argument('-e', '--nepoch', type=int, default=100, help='Enter the number of epoch')
 parser.add_argument('-i', '--iter', type=int, default=1, help='Enter the number of iteration you want to run')
 parser.add_argument('--data_path', type=str, default='data', help='Enter default data store path')
+parser.add_argument('--pretrained', action='store_true', help='If specify, it will use pretrained model')
 parser.add_argument('--download_dataset', action='store_true',
                     help='If specify, it will download cifar10/100')
 

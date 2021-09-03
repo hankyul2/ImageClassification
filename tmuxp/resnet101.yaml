@@ -2,10 +2,10 @@ session_name: ic_resnet101
 windows:
 - window_name: cifar10
   panes:
-  - python3 main.py -g 1 -m resnet101 -d cifar10 -i 3
+  - python3 main.py -g 6 -m resnet101 -d cifar10 -i 3 --pretrained
 - window_name: cifar100
   panes:
-  - python3 main.py -g 1 -m resnet101 -d cifar100 -i 3
+  - python3 main.py -g 7 -m resnet101 -d cifar100 -i 3 --pretrained
 - window_name: Tensorboard
   panes:
     - tensorboard --logdir=log/tensor_board
