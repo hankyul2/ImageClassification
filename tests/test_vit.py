@@ -33,7 +33,7 @@ def test_encoder():
 
 def test_get_vit():
     x = torch.rand((8, 3, 224, 224))
-    vit = get_vit('vit_base')
+    vit = get_vit('vit_base_patch16_224')
     assert vit
     assert list(vit(x).shape) == [8, 1000]
 

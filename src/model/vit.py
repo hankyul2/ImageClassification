@@ -7,6 +7,8 @@ import torch.nn.functional as F
 
 import copy
 
+from src.utils import load_from_zoo
+
 
 def is_pair(img_size):
     return img_size if isinstance(img_size, tuple) else (img_size, img_size)
@@ -135,7 +137,7 @@ class VIT(nn.Module):
         return self.encoder(self.embed(x))
 
 
-def build_vit(img_size=(224, 224), patch_size=(16, 16), d_model=512, h=8, d_ff=2048, N=6,
+def build_vit(d_model=512, h=8, d_ff=2048, N=6, patch_size=(16, 16), img_size=(224, 224),
               nclass=1000, dropout=0.1, in_channel=3):
     c = copy.deepcopy
     embed = Embedding(d_model=d_model, img_size=img_size, patch_size=patch_size, in_channel=in_channel, dropout=dropout)
@@ -157,12 +159,26 @@ def build_vit(img_size=(224, 224), patch_size=(16, 16), d_model=512, h=8, d_ff=2
     return vit
 
 
-def get_vit(model_name, nclass=1000):
-    if model_name == 'vit_base':
-        vit = build_vit(d_model=512, h=8, N=6, nclass=nclass)
-    elif model_name == 'vit_large':
-        vit = build_vit(d_model=512, h=8, N=6, nclass=nclass)
-    elif model_name == 'vit_huge':
-        vit = build_vit(d_model=512, h=8, N=6, nclass=nclass)
+def get_vit(model_name: str, nclass=1000, pretrained=False):
+    '''model_name_form: vit_{base,large}_patch{16,32}_{224,384}'''
+    if 'vit_base' in model_name:
+        d_model, h, d_ff, N = 768, 12, 3072, 12
+    elif 'vit_large' in model_name:
+        d_model, h, d_ff, N = 1024, 16, 4096, 24
+
+    if 'patch16' in model_name:
+        patch_size = (16, 16)
+    elif 'patch32' in model_name:
+        patch_size = (32, 32)
+
+    if '224' in model_name:
+        img_size = (224, 224)
+    elif '384' in model_name:
+        img_size = (384, 384)
+
+    vit = build_vit(patch_size=patch_size, img_size=img_size, d_model=d_model, h=h, d_ff=d_ff, N=N, nclass=nclass)
+
+    if pretrained:
+        load_from_zoo(vit, model_name)
 
     return vit

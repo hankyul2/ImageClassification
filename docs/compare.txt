@@ -18,15 +18,14 @@ Timm Library 구현체와 차이점
 
 model_weight
 model: 
-r50+vit-b_16, r50+vit-l_16,
-vit-b_16, vit-b_32, 
-vit_l_16, vit_l_32
-pretrained on: imagenet21k, imagenet, cifar10, cifar100
+r50+vit-b_16_224, r50+vit-l_32_224,
+vit-b_16_224, vit-b_32_224
+vit_l_16_224, vit_l_32_224
+pretrained on: imagenet21k, imagenet
 
-check how to fine-tuning on dataset
-
+imagenet21k pretrained 된 모델 가지고 imagenet, cifar10, cifar100에서 성능 내보기
 goal : dropout=0.1 일 때의 성능 나오게 하기
 
-
-
-
+추가 도전 : imageNet을 384x384로 학습했을 때의 성능 변화 관찰하기
+내가 이해한 2D interpolation의 의미
+모델을 초기화 할 때 224x224 사이즈로 학습된 pe를 384x384로 늘여뜨린다?

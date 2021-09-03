@@ -14,7 +14,8 @@ parser.add_argument('-g', '--gpu_id', type=str, default='', help='Enter which gp
 parser.add_argument('-r', '--random_seed', type=int, default=None, help='Enter random seed')
 parser.add_argument('-m', '--model_name', type=str.lower, default='', choices=[
     'resnet18', 'resent34', 'resnet50', 'resnet101', 'resnet152', 'resnext50_32x4d', 'wide_resnet50_2',
-    'vit_base'
+    'vit_base_patch16_224', 'vit_base_patch32_224', 'vit_large_patch16_224', 'vit_large_patch32_224',
+    'R50_vit_base_patch16_224', 'R50_vit_large_patch32_224',
 ], help='Enter model name')
 parser.add_argument('-d', '--dataset', type=str, default='', help='Enter dataset')
 parser.add_argument('-b', '--batch_size', type=int, default=32, help='Enter batch size for train step')
