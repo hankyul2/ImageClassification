@@ -139,19 +139,19 @@ def dim_convertor(name, weight):
 
 
 class VIT(nn.Module):
-    def __init__(self, embed, encoder, mlp_head):
+    def __init__(self, embed, encoder, fc):
         super(VIT, self).__init__()
         self.embed = embed
         self.encoder = encoder
-        self.mlp_head = mlp_head
+        self.fc = fc
 
     def forward(self, x):
         x = self.encode(x)
-        return self.mlp_head(x[:, 0])
+        return self.fc(x[:, 0])
 
     def predict(self, x):
         x = self.encode(x)
-        return self.mlp_head(x[:, 0])
+        return self.fc(x[:, 0])
 
     def encode(self, x):
         return self.encoder(self.embed(x))
@@ -166,7 +166,7 @@ class VIT(nn.Module):
             ('attn', 'MultiHeadDotProductAttention_1'), ('qkv.0', 'query'), ('qkv.1', 'key'), ('qkv.2', 'value'), ('\\.', '/')
         ]
         for name, param in self.named_parameters():
-            if 'head' in name:
+            if 'fc' in name:
                 continue
             for pattern, sub in name_convertor:
                 name = re.sub(pattern, sub, name)
@@ -181,9 +181,9 @@ def build_vit(d_model=512, h=8, d_ff=2048, N=6, patch_size=(16, 16), img_size=(2
     attn = MultiHeadAttention(d_model=d_model, h=h, dropout=dropout)
     ff = FeedForward(d_model=d_model, d_ff=d_ff, dropout=dropout)
     su = SublayerConnection(d_model=d_model)
-    mlp_head = nn.Linear(d_model, nclass)
+    fc = nn.Linear(d_model, nclass)
 
-    vit = VIT(embed=embed, encoder=Encoder(EncoderLayer(c(attn), c(ff), c(su)), d_model, N), mlp_head=mlp_head)
+    vit = VIT(embed=embed, encoder=Encoder(EncoderLayer(c(attn), c(ff), c(su)), d_model, N), fc=fc)
 
     for name, param in vit.named_parameters():
         if param.dim() > 2:

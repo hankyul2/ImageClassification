@@ -28,6 +28,13 @@ goal : dropout=0.1 일 때의 성능 나오게 하기
 공식 학습 결과 : https://github.com/google-research/vision_transformer
 공식 학습 방법 : https://github.com/google-research/vision_transformer#fine-tuning-a-model
 
+gpu memory usage
+vit_base_patch16_224 : 4
+vit_large_patch16_224 : 6
+vit_base_patch32_224 : 3
+vit_large_patch32_224 : 5
+
+
 추가 도전 : imageNet을 384x384로 학습했을 때의 성능 변화 관찰하기
 내가 이해한 2D interpolation의 의미
 모델을 초기화 할 때 224x224 사이즈로 학습된 pe를 384x384로 늘여뜨린다?
