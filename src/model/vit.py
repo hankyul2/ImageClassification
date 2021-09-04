@@ -139,19 +139,20 @@ def dim_convertor(name, weight):
 
 
 class VIT(nn.Module):
-    def __init__(self, embed, encoder, fc):
+    def __init__(self, embed, encoder, pre_logits, fc):
         super(VIT, self).__init__()
         self.embed = embed
         self.encoder = encoder
+        self.pre_logits = pre_logits
         self.fc = fc
 
     def forward(self, x):
         x = self.encode(x)
-        return self.fc(x[:, 0])
+        return self.fc(self.pre_logits(x[:, 0]))
 
     def predict(self, x):
         x = self.encode(x)
-        return self.fc(x[:, 0])
+        return self.fc(self.pre_logits(x[:, 0]))
 
     def encode(self, x):
         return self.encoder(self.embed(x))
@@ -159,11 +160,12 @@ class VIT(nn.Module):
     def load_npz(self, npz):
         name_convertor = [
             ('embed.cls_token', 'cls'), ('embed.linear_projection', 'embedding'),
-            ('embed.pe', 'Transformer/posembed_input/pos_embedding'),
+            ('embed.pe', 'Transformer/posembed_input/pos_embedding'), ('pre_logits.0', 'pre_logits'),
             ('s.0.norm', 'LayerNorm_0'), ('s.1.norm', 'LayerNorm_2'), ('a_2', 'scale'), ('b_2', 'bias'),
             ('encoder', 'Transformer'), ('layers.', 'encoderblock_'), ('norm', 'encoder_norm'),
             ('weight', 'kernel'), ('ff', 'MlpBlock_3'), ('w1', 'Dense_0'), ('w2', 'Dense_1'),
-            ('attn', 'MultiHeadDotProductAttention_1'), ('qkv.0', 'query'), ('qkv.1', 'key'), ('qkv.2', 'value'), ('\\.', '/')
+            ('attn', 'MultiHeadDotProductAttention_1'), ('qkv.0', 'query'), ('qkv.1', 'key'), ('qkv.2', 'value'),
+            ('\\.', '/')
         ]
         for name, param in self.named_parameters():
             if 'fc' in name:
@@ -173,17 +175,18 @@ class VIT(nn.Module):
             param.data.copy_(dim_convertor(name, npz.get(name)))
 
 
-
 def build_vit(d_model=512, h=8, d_ff=2048, N=6, patch_size=(16, 16), img_size=(224, 224),
-              nclass=1000, dropout=0.1, in_channel=3):
+              nclass=1000, dropout=0.1, in_channel=3, pre_logits=False):
     c = copy.deepcopy
     embed = Embedding(d_model=d_model, img_size=img_size, patch_size=patch_size, in_channel=in_channel, dropout=dropout)
     attn = MultiHeadAttention(d_model=d_model, h=h, dropout=dropout)
     ff = FeedForward(d_model=d_model, d_ff=d_ff, dropout=dropout)
     su = SublayerConnection(d_model=d_model)
-    fc = nn.Linear(d_model, nclass)
+    pre_logits = nn.Sequential(nn.Linear(d_model, d_model), nn.Tanh()) if pre_logits else nn.Identity()
+    fc = nn.Linear(d_model, nclass) if nclass else nn.Identity()
 
-    vit = VIT(embed=embed, encoder=Encoder(EncoderLayer(c(attn), c(ff), c(su)), d_model, N), fc=fc)
+    vit = VIT(embed=embed, encoder=Encoder(EncoderLayer(c(attn), c(ff), c(su)), d_model, N), pre_logits=pre_logits,
+              fc=fc)
 
     for name, param in vit.named_parameters():
         if param.dim() > 2:

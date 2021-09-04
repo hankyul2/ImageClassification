@@ -1,5 +1,8 @@
+import re
 from typing import Type, Union
 
+import torch
+from einops import rearrange
 from torch import nn
 
 from src.model.layers.conv_block import BasicBlock, BottleNeck, conv1x1, resnet_normal_init, resnet_zero_init, \
@@ -9,7 +12,7 @@ from src.utils import load_from_zoo
 
 class ResNet(nn.Module):
     def __init__(self, block: Type[Union[BasicBlock, PreActBasicBlock, PreActBottleNeck, BottleNeck]],
-                 nblock: list, nclass: int = 1000, channels: list = [64, 128, 256, 512],
+                 nblock: list, nclass: int = 1000, channels: list = [64, 128, 256, 512], strides=[1, 2, 2, 2],
                  norm_layer: nn.Module = nn.BatchNorm2d, groups=1, base_width=64) -> None:
         super(ResNet, self).__init__()
         self.groups = groups
@@ -25,19 +28,17 @@ class ResNet(nn.Module):
         self.flatten = nn.Flatten()
         self.fc = nn.Linear(channels[-1] * block.factor, nclass)
 
-        self.layers = [self.make_layer(block=block, nblock=nblock[i], channels=channels[i]) for i in range(len(nblock))]
+        self.layers = [self.make_layer(block=block, nblock=nblock[i], channels=channels[i], stride=strides[i]) for i in range(len(nblock))]
         self.register_layer()
 
     def register_layer(self):
         for i, layer in enumerate(self.layers):
             exec('self.layer{} = {}'.format(i + 1, 'layer'))
 
-    def make_layer(self, block: Type[Union[BasicBlock, PreActBasicBlock, PreActBottleNeck, BottleNeck]], nblock: int, channels: int) -> nn.Sequential:
+    def make_layer(self, block: Type[Union[BasicBlock, PreActBasicBlock, PreActBottleNeck, BottleNeck]], nblock: int, channels: int, stride: int) -> nn.Sequential:
         layers = []
         downsample = None
-        stride = 1
         if self.in_channels != channels * block.factor:
-            stride = 2
             downsample = nn.Sequential(
                 conv1x1(self.in_channels, channels * block.factor, stride=stride),
                 self.norm_layer(channels * block.factor)
@@ -64,6 +65,30 @@ class ResNet(nn.Module):
 
     def forward(self, x):
         return self.predict(x)
+
+    def load_npz(self, npz):
+        name_convertor = [
+            ('downsample.0', 'conv_proj'), ('downsample.1', 'gn_proj'),
+            ('^conv1.weight', 'conv_root/kernel'), ('^bn1', 'bn_root'),
+            ('bn', 'gn'), ('layer', 'block'), ('conv(.*)weight', 'conv\\1kernel'),
+            ('\\.(\\d)\\.', lambda x: f'.unit{int(x.group(1))+1}.'),
+            ('weight', 'scale'),  ('\\.', '/'),
+        ]
+        for name, param in self.named_parameters():
+            if 'fc' in name:
+                continue
+            for pattern, sub in name_convertor:
+                name = re.sub(pattern, sub, name)
+            param.data.copy_(npz_dim_convertor(name, npz.get(name)))
+
+
+def npz_dim_convertor(name, weight):
+    weight = torch.from_numpy(weight)
+    if 'kernel' in name:
+        weight = rearrange(weight, 'h w in_c out_c -> out_c in_c h w')
+    elif 'scale' in name or 'bias' in name:
+        weight = weight.squeeze()
+    return weight
 
 
 def get_resnet(model_name: str, nclass=1000, zero_init_residual=False, pretrained=False, dataset=None) -> nn.Module:
