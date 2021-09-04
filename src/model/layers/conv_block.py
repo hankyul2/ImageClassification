@@ -26,12 +26,29 @@ class BasicBlock(nn.Module):
         return F.relu(self.downsample(x) + self.bn2(self.conv2(out)))
 
 
+class PreActBasicBlock(BasicBlock):
+    factor = 1
+
+    def __init__(self, in_channels, out_channels, stride, norm_layer, downsample=None, groups=1, base_width=64):
+        super(BasicBlock, self).__init__(in_channels, out_channels, stride, norm_layer, downsample, groups, base_width)
+        self.bn1 = norm_layer(in_channels)
+        self.bn2 = norm_layer(in_channels)
+        self.downsample = nn.Sequential(
+                self.norm_layer(out_channels),
+                conv1x1(self.in_channels, out_channels * self.factor, stride=stride),
+            ) if downsample else nn.Identity()
+
+    def forward(self, x):
+        out = self.conv1(F.relu(self.bn1(x)))
+        return self.downsample(x) + F.relu(self.conv2(self.bn2(x)))
+
+
 class BottleNeck(nn.Module):
     factor = 4
 
     def __init__(self, in_channels, out_channels, stride, norm_layer, downsample=None, groups=1, base_width=64):
         super(BottleNeck, self).__init__()
-        width = int(out_channels * (base_width / 64.0)) * groups
+        self.width = width = int(out_channels * (base_width / 64.0)) * groups
         self.conv1 = conv1x1(in_channels, width)
         self.conv2 = conv3x3(width, width, stride, groups=groups)
         self.conv3 = conv1x1(width, out_channels * self.factor)
@@ -44,6 +61,26 @@ class BottleNeck(nn.Module):
         out = F.relu(self.bn1(self.conv1(x)))
         out = F.relu(self.bn2(self.conv2(out)))
         return F.relu(self.downsample(x) + self.bn3(self.conv3(out)))
+
+
+class PreActBottleNeck(BottleNeck):
+    '''Define ResNet Version2. If you want to apply PreActivation, you can just replace original BottleNeck to this'''
+
+    factor = 4
+
+    def __init__(self, in_channels, out_channels, stride, norm_layer, downsample=None, groups=1, base_width=64):
+        super(PreActBottleNeck, self).__init__(in_channels, out_channels, stride, norm_layer, downsample, groups, base_width)
+        self.bn1 = norm_layer(in_channels)
+        self.bn3 = norm_layer(self.width)
+        self.downsample = nn.Sequential(
+                self.norm_layer(out_channels),
+                conv1x1(self.in_channels, out_channels * self.factor, stride=stride),
+            ) if downsample else nn.Identity()
+
+    def forward(self, x):
+        out = self.conv1(F.relu(self.bn1(x)))
+        out = self.conv2(F.relu(self.bn2(out)))
+        return self.downsample(x) + self.conv3(F.relu(self.bn3(out)))
 
 
 def resnet_normal_init(model):

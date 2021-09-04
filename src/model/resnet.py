@@ -2,14 +2,15 @@ from typing import Type, Union
 
 from torch import nn
 
-from src.model.layers.conv_block import BasicBlock, BottleNeck, conv1x1, resnet_normal_init, resnet_zero_init
+from src.model.layers.conv_block import BasicBlock, BottleNeck, conv1x1, resnet_normal_init, resnet_zero_init, \
+    PreActBasicBlock, PreActBottleNeck
 from src.utils import load_from_zoo
 
 
 class ResNet(nn.Module):
-    def __init__(self, block: Type[Union[BasicBlock, BottleNeck]], nblock: list, nclass: int = 1000,
-                 channels: list = [64, 128, 256, 512], norm_layer: nn.Module = nn.BatchNorm2d, groups=1,
-                 base_width=64) -> None:
+    def __init__(self, block: Type[Union[BasicBlock, PreActBasicBlock, PreActBottleNeck, BottleNeck]],
+                 nblock: list, nclass: int = 1000, channels: list = [64, 128, 256, 512],
+                 norm_layer: nn.Module = nn.BatchNorm2d, groups=1, base_width=64) -> None:
         super(ResNet, self).__init__()
         self.groups = groups
         self.base_width = base_width
@@ -31,7 +32,7 @@ class ResNet(nn.Module):
         for i, layer in enumerate(self.layers):
             exec('self.layer{} = {}'.format(i + 1, 'layer'))
 
-    def make_layer(self, block: Type[Union[BasicBlock, BottleNeck]], nblock: int, channels: int) -> nn.Sequential:
+    def make_layer(self, block: Type[Union[BasicBlock, PreActBasicBlock, PreActBottleNeck, BottleNeck]], nblock: int, channels: int) -> nn.Sequential:
         layers = []
         downsample = None
         stride = 1
@@ -39,7 +40,7 @@ class ResNet(nn.Module):
             stride = 2
             downsample = nn.Sequential(
                 conv1x1(self.in_channels, channels * block.factor, stride=stride),
-                nn.BatchNorm2d(channels * block.factor)
+                self.norm_layer(channels * block.factor)
             )
         for i in range(nblock):
             if i == 1:
@@ -51,17 +52,18 @@ class ResNet(nn.Module):
                                 groups=self.groups, base_width=self.base_width))
         return nn.Sequential(*layers)
 
-    def forward(self, x):
+    def features(self, x):
         x = self.maxpool(self.relu(self.bn1(self.conv1(x))))
         for layer in self.layers:
             x = layer(x)
-        return self.fc(self.flatten(self.avgpool(x)))
+        return x
 
     def predict(self, x):
-        x = self.maxpool(self.relu(self.bn1(self.conv1(x))))
-        for layer in self.layers:
-            x = layer(x)
+        x = self.features(x)
         return self.fc(self.flatten(self.avgpool(x)))
+
+    def forward(self, x):
+        return self.predict(x)
 
 
 def get_resnet(model_name: str, nclass=1000, zero_init_residual=False, pretrained=False, dataset=None) -> nn.Module:
