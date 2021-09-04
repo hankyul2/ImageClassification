@@ -15,7 +15,7 @@ class Hybrid(nn.Module):
         self.vit = vit
 
     def predict(self, x):
-        x = self.cnn.feature(x)
+        x = self.cnn.features(x)
         return self.vit(x)
 
     def forward(self, x):
@@ -29,12 +29,13 @@ def get_hybrid(model_name, nclass=1000):
         num_layer, d_model, h, d_ff, N = [3, 4, 6, 3], 1024, 16, 4096, 24
 
     cnn = ResNet(PreActBottleNeck, num_layer, nclass=nclass, norm_layer=partial(nn.GroupNorm, 32))
-    c, h, w = get_feature_map_info(cnn)
-    print(c, h, w)
-    vit = build_vit(patch_size=(1, 1), img_size=(h, w), in_channel=c, d_model=d_model, h=h, d_ff=d_ff, N=N, nclass=nclass)
+    feature_dim, feature_size = get_feature_map_info(cnn)
+    vit = build_vit(patch_size=(1, 1), img_size=feature_size, in_channel=feature_dim, d_model=d_model, h=h, d_ff=d_ff, N=N, nclass=nclass)
+    hybrid = Hybrid(cnn=cnn, vit=vit)
+    return hybrid
 
 
 @torch.no_grad()
 def get_feature_map_info(cnn):
     _, c, h, w = map(int, cnn.features(torch.rand((1, 3, 224, 224))).shape)
-    return c, h, w
+    return c, (h, w)

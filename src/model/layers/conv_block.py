@@ -34,8 +34,8 @@ class PreActBasicBlock(BasicBlock):
         self.bn1 = norm_layer(in_channels)
         self.bn2 = norm_layer(in_channels)
         self.downsample = nn.Sequential(
-                self.norm_layer(out_channels),
-                conv1x1(self.in_channels, out_channels * self.factor, stride=stride),
+                norm_layer(in_channels),
+                conv1x1(in_channels, out_channels * self.factor, stride=stride),
             ) if downsample else nn.Identity()
 
     def forward(self, x):
@@ -73,8 +73,8 @@ class PreActBottleNeck(BottleNeck):
         self.bn1 = norm_layer(in_channels)
         self.bn3 = norm_layer(self.width)
         self.downsample = nn.Sequential(
-                self.norm_layer(out_channels),
-                conv1x1(self.in_channels, out_channels * self.factor, stride=stride),
+                norm_layer(in_channels),
+                conv1x1(in_channels, out_channels * self.factor, stride=stride),
             ) if downsample else nn.Identity()
 
     def forward(self, x):
