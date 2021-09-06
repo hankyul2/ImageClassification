@@ -1,0 +1,22 @@
+Transformer/posembed_input/pos_embedding torch.Size([1, 197, 1024]) torch.Size([1, 50, 1024]) torch.Size([7, 7])
+
+gs_new = (7, 7)
+posemb_tok : [1, 1, 1024], posemb_grid : [196, 1024]
+gs_old = 14
+
+posemb_grid: [196, 1024] -> [1, 14, 14, 1024] -> [1, 1024, 14, 14] -> [1, 1024, 7, 7] -> [1, 7, 7, 1024] -> [1, 49, 1024]
+
+1. split positional embedding to cls_positional_embeding + image_positional_embedding ex) (197) -> (1), (196)
+2. reshape positional embedding from linear to grid format. ex) (196, 1024) -> (1024, 14, 14)
+3. interpolate positional encoding to new size ex) F.interpolate(pe, size=new_pe_size, mode='bicubic', align_corners=False)
+4. reshape positional embeding to linear and add cls token again ex) (1024, 7, 7) -> (197, 1024)
+
+Question : Why positional encoding shape is different? -> There was no difference, just my code had been wrong
+
+pretrained_path/r50_vit_base_patch16_224/R50+ViT-B_16.npz 
+name: Transformer/posembed_input/pos_embedding param shape: (1, 197, 768)
+
+pretrained_path/r50_vit_large_patch32_224/R50+ViT-L_32.npz
+name: Transformer/posembed_input/pos_embedding param shape: (1, 50, 1024)
+
+Patch Load Pos Embed Module
