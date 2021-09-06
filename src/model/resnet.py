@@ -26,7 +26,7 @@ class ResNet(nn.Module):
         self.maxpool = nn.MaxPool2d(kernel_size=(3, 3), stride=2, padding=1)
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.flatten = nn.Flatten()
-        self.fc = nn.Linear(channels[-1] * block.factor, nclass)
+        self.fc = nn.Linear(channels[-1] * block.factor, nclass) if nclass else nn.Identity()
 
         self.layers = [self.make_layer(block=block, nblock=nblock[i], channels=channels[i], stride=strides[i]) for i in range(len(nblock))]
         self.register_layer()
