@@ -34,4 +34,8 @@ GPU Usage
 | ViT base 16x16          | 4G    | 8.5G    |
 | ViT large 32x32         | 5G    | 8G      |
 | ViT large 16x16         | 6G    | 23.6G   |
+| R50 + ViT base 16x16    |       | 14.2G   |
+| R50 + ViT large 32x32   |       | 12G     |
+
+*ViT Huge 16x16, R50 + ViT large 16x16는 muti-gpu를 꼭 사용해야 됨 (RTX 3090 기준)*
 
