@@ -38,7 +38,7 @@ class MyOpt:
 
 def run(args):
     # step 1. prepare dataset
-    train_ds, valid_ds, test_ds = get_cifar(args.dataset)
+    train_ds, valid_ds, test_ds = get_cifar(args.dataset, size=args.img_size)
     train_dl, = convert_to_dataloader([train_ds], batch_size=args.batch_size, num_workers=args.num_workers, train=True)
     valid_dl, test_dl = convert_to_dataloader([valid_ds, test_ds], batch_size=args.batch_size,
                                               num_workers=args.num_workers, train=False)

@@ -18,6 +18,7 @@ parser.add_argument('-m', '--model_name', type=str.lower, default='', choices=[
     'r50_vit_base_patch16_224', 'r50_vit_large_patch32_224',
 ], help='Enter model name')
 parser.add_argument('-d', '--dataset', type=str, default='', help='Enter dataset')
+parset.add_argument('-s', '--img_size', type=tuple, default=(224, 224), help='Enter Image Size')
 parser.add_argument('-b', '--batch_size', type=int, default=32, help='Enter batch size for train step')
 parser.add_argument('-w', '--num_workers', type=int, default=4, help='Enter the number of workers per dataloader')
 parser.add_argument('-l', '--lr', type=float, default=3e-4, help='Enter learning rate')

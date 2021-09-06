@@ -8,10 +8,10 @@ def convert_to_dataloader(datasets, batch_size, num_workers, train=True):
                                         drop_last=True) for ds in datasets]
 
 
-def get_cifar(dataset_name):
-    train_ds = get_my_dataset(dataset_name, train=True)
-    valid_ds = get_my_dataset(dataset_name, train=False)
-    test_ds = get_my_dataset(dataset_name, train=False)
+def get_cifar(dataset_name, size=(32, 32)):
+    train_ds = get_my_dataset(dataset_name, train=True, size=size)
+    valid_ds = get_my_dataset(dataset_name, train=False, size=size)
+    test_ds = get_my_dataset(dataset_name, train=False, size=size)
 
     print('{} dataset class num: {}'.format(dataset_name, len(train_ds.classes)))
     print('{} train dataset len: {}'.format(dataset_name, len(train_ds)))
@@ -21,7 +21,7 @@ def get_cifar(dataset_name):
     return train_ds, valid_ds, test_ds
 
 
-def get_my_dataset(dataset_name, train):
+def get_my_dataset(dataset_name, train, size):
     if dataset_name == 'cifar10':
         dataset = CIFAR10(root='data', train=train, download=False)
         mean = (0.4914, 0.4822, 0.4465)
@@ -32,14 +32,16 @@ def get_my_dataset(dataset_name, train):
         std = (0.2673, 0.2564, 0.2762)
 
     train_transform = transforms.Compose([
+        transforms.Resize(size),
         transforms.Pad(4, padding_mode='reflect'),
-        transforms.RandomCrop(32),
+        transforms.RandomCrop(size),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         transforms.Normalize(mean=mean, std=std)
     ])
     test_transform = transforms.Compose([
-        transforms.CenterCrop(32),
+        transforms.Resize(size),
+        transforms.CenterCrop(size),
         transforms.ToTensor(),
         transforms.Normalize(mean=mean, std=std)
     ])
