@@ -31,7 +31,7 @@ GPU Usage
 | EfficientNet_b0         |       |         |
 | EfficientNet_b1         |       |         |
 | ViT base 32x32          | 3G    | 4G      |
-| ViT base 16x16          | 4G    | 8.5G    |
+| ViT base 16x16          | 4G    | 9.9G    |
 | ViT large 32x32         | 5G    | 8G      |
 | ViT large 16x16         | 6G    | 23.6G   |
 | R50 + ViT base 16x16    |       | 14.2G   |
