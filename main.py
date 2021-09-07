@@ -28,6 +28,7 @@ parser.add_argument('--data_path', type=str, default='data', help='Enter default
 parser.add_argument('--pretrained', action='store_true', help='If specify, it will use pretrained model')
 parser.add_argument('--download_dataset', action='store_true',
                     help='If specify, it will download cifar10/100')
+parser.add_argument('--update_best_result', action='store_true', help='If specify, it will update best result log')
 
 
 def init(args):
@@ -49,13 +50,18 @@ if __name__ == '__main__':
     init(args)
     print('Model name is {}'.format(args.model_name))
 
-    from src.train import run
+
 
     if args.download_dataset:
         download_dataset(args.data_path)
+        exit(0)
+    elif args.update_best_result:
+        from src.log import run
     else:
-        for iter in range(args.iter):
-            run(args)
+        from src.train import run
+
+    for iter in range(args.iter):
+        run(args)
 
 
 
