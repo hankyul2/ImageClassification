@@ -20,7 +20,10 @@ class ModelWrapper(BaseModelWrapper):
 
 class MyOpt:
     def __init__(self, model, lr, nbatch, weight_decay=0.0005, momentum=0.95):
-        self.optimizer = SGD(model.fc.parameters(), lr=lr, momentum=momentum, weight_decay=weight_decay)
+        self.optimizer = SGD([
+            {'params': model.fc.parameters(), 'lr': lr},
+            {'params': [param for name, param in model.named_parameters() if 'fc' not in name], 'lr': lr/10}
+        ], lr=lr, momentum=momentum, weight_decay=weight_decay)
         self.scheduler = LR.MultiStepLR(self.optimizer, milestones=[17, 33], gamma=0.1)
         self.nbatch = nbatch
         self.step_ = 0
