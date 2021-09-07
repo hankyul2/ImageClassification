@@ -35,7 +35,7 @@ def get_hybrid(model_name, nclass=1000, pretrained=False):
         num_layer, d_model, h, d_ff, N = [3, 4, 6, 3], 1024, 16, 4096, 24
 
     cnn = ResNet(BottleNeck, num_layer, nclass=nclass, norm_layer=partial(nn.GroupNorm, 32))
-    feature_dim, feature_size = get_feature_map_info(cnn)
+    feature_dim, feature_size = get_feature_map_info(cnn, model_name)
     vit = build_vit(patch_size=(1, 1), img_size=feature_size, in_channel=feature_dim, d_model=d_model,
                     h=h, d_ff=d_ff, N=N, nclass=0, pre_logits=True)
     fc = nn.Linear(d_model, nclass)
@@ -48,6 +48,10 @@ def get_hybrid(model_name, nclass=1000, pretrained=False):
 
 
 @torch.no_grad()
-def get_feature_map_info(cnn):
-    _, c, h, w = map(int, cnn.features(torch.rand((1, 3, 224, 224))).shape)
+def get_feature_map_info(cnn, model_name):
+    if '224' in model_name:
+        img_size = (1, 3, 224, 224)
+    elif '384' in model_name:
+        img_size = (1, 3, 384, 384)
+    _, c, h, w = map(int, cnn.features(torch.rand(img_size)).shape)
     return c, (h, w)

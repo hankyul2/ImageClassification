@@ -35,6 +35,7 @@ model_urls = {
 
 
 def load_from_zoo(model, model_name, pretrained_path='pretrained_path'):
+    model_name = change_384_224(model_name)
     Path(os.path.join(pretrained_path, model_name)).mkdir(parents=True, exist_ok=True)
     if model_urls[model_name].endswith('pth'):
         state_dict = load_state_dict_from_url(url=model_urls[model_name],
@@ -47,6 +48,11 @@ def load_from_zoo(model, model_name, pretrained_path='pretrained_path'):
         npz = load_npz_from_url(url=model_urls[model_name],
                                 file_name=os.path.join(pretrained_path, model_name, os.path.basename(model_urls[model_name])))
         model.load_npz(npz)
+
+
+def change_384_224(model_name):
+    model_name = model_name.replace('384', '224')
+    return model_name
 
 
 def load_npz_from_url(url, file_name):

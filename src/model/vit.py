@@ -40,7 +40,7 @@ class Embedding(nn.Module):
         x = self.linear_projection(x)
         x = self.img2patch(x)
         x = self.pad_cls_token(x)
-        xx = self.add_positional_encoding(x)
+        x = self.add_positional_encoding(x)
         return self.dropout(x)
 
 
@@ -138,6 +138,22 @@ def dim_convertor(name, weight):
     return weight
 
 
+def interpolate(raw_param, pretrained_weight):
+    pretrained_weight = torch.from_numpy(pretrained_weight)
+    if list(raw_param.data.shape) != list(pretrained_weight.shape):
+        cls_token, positional_embedding = pretrained_weight[:, :1], pretrained_weight[:, 1:]
+        raw_dim, pretrained_dim = get_dim(raw_param.data), get_dim(positional_embedding)
+        grid_positional_embedding = rearrange(positional_embedding, '1 (h w) d -> 1 d h w', h=pretrained_dim)
+        resized_grid_positional_embedding = F.interpolate(grid_positional_embedding, size=[raw_dim, raw_dim], mode='bicubic', align_corners=False)
+        positional_embedding = rearrange(resized_grid_positional_embedding, '1 d h w -> 1 (h w) d')
+        pretrained_weight = torch.cat([cls_token, positional_embedding], dim=1)
+    return pretrained_weight
+
+
+def get_dim(weight):
+    return int(math.sqrt(float(weight.size(1))))
+
+
 class VIT(nn.Module):
     def __init__(self, embed, encoder, pre_logits, fc):
         super(VIT, self).__init__()
@@ -172,7 +188,10 @@ class VIT(nn.Module):
                 continue
             for pattern, sub in name_convertor:
                 name = re.sub(pattern, sub, name)
-            param.data.copy_(dim_convertor(name, npz.get(name)))
+            if 'pos_embedding' in name:
+                param.data.copy_(interpolate(param, npz.get(name)))
+            else:
+                param.data.copy_(dim_convertor(name, npz.get(name)))
 
 
 def build_vit(d_model=512, h=8, d_ff=2048, N=6, patch_size=(16, 16), img_size=(224, 224),

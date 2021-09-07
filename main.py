@@ -15,10 +15,11 @@ parser.add_argument('-r', '--random_seed', type=int, default=None, help='Enter r
 parser.add_argument('-m', '--model_name', type=str.lower, default='', choices=[
     'resnet18', 'resent34', 'resnet50', 'resnet101', 'resnet152', 'resnext50_32x4d', 'wide_resnet50_2',
     'vit_base_patch16_224', 'vit_base_patch32_224', 'vit_large_patch16_224', 'vit_large_patch32_224',
-    'r50_vit_base_patch16_224', 'r50_vit_large_patch32_224',
+    'vit_base_patch16_384', 'vit_base_patch32_384', 'vit_large_patch16_384', 'vit_large_patch32_384',
+    'r50_vit_base_patch16_224', 'r50_vit_large_patch32_224', 'r50_vit_base_patch16_384', 'r50_vit_large_patch32_384',
 ], help='Enter model name')
 parser.add_argument('-d', '--dataset', type=str, default='', help='Enter dataset')
-parser.add_argument('-s', '--img_size', type=tuple, default=(224, 224), help='Enter Image Size')
+parser.add_argument('-s', '--img_size', type=int, default=(224, 224), nargs='+', help='Enter Image Size')
 parser.add_argument('-b', '--batch_size', type=int, default=32, help='Enter batch size for train step')
 parser.add_argument('-w', '--num_workers', type=int, default=4, help='Enter the number of workers per dataloader')
 parser.add_argument('-l', '--lr', type=float, default=3e-4, help='Enter learning rate')
@@ -49,8 +50,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     init(args)
     print('Model name is {}'.format(args.model_name))
-
-
+    print('image size is {}'.format(args.img_size))
 
     if args.download_dataset:
         download_dataset(args.data_path)
