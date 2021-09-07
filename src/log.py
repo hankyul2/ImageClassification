@@ -96,7 +96,7 @@ class Result:
         assert len(result) >= num
         best_acc = 0.0
         best_result = result[:num]
-        for i in range(len(result) - num):
+        for i in range(len(result) - num + 1):
             acc = sum([float(row[self.acc_idx]) for row in result[i:i + num]])
             if acc > best_acc:
                 best_acc = acc
@@ -171,3 +171,7 @@ def setup_directory(log_name):
             prefix, log_name, date)
         ).mkdir(exist_ok=True, parents=True)
         clear_unused_log('log/{}/{}'.format(prefix, log_name))
+
+
+def run(args):
+    Result().update_best_result()
