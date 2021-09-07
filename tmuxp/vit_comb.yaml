@@ -31,8 +31,8 @@ windows:
 - window_name: vit_large_16
   panes:
     - shell_command:
-      - python3 main.py -g 7 -m vit_large_patch16_224 -d cifar10 -i 3 --pretrained
-      - python3 main.py -g 7 -m vit_large_patch16_224 -d cifar100 -i 3 --pretrained
+      - python3 main.py -g 7 -m vit_large_patch16_224 -d cifar10 -i 3 -b 16 --pretrained
+      - python3 main.py -g 7 -m vit_large_patch16_224 -d cifar100 -i 3 -b 16 --pretrained
 
 - window_name: Tensorboard
   panes:

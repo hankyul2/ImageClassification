@@ -2,7 +2,6 @@ import math
 
 import torch
 from einops import rearrange, repeat
-from numpy.testing._private.parameterized import param
 from torch import nn
 import torch.nn.functional as F
 
