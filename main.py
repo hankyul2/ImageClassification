@@ -7,6 +7,7 @@ import random
 
 import torch
 
+from src.multi_gpus import run_multi_gpus
 from src.utils import download_dataset
 
 parser = argparse.ArgumentParser(description='Domain Adaptation')
@@ -46,6 +47,11 @@ def fix_seed(random_seed):
     torch.manual_seed(random_seed)
 
 
+def is_multi_gpus(args):
+    args.is_multi_gpus = args.gpu_id != '' and len(args.gpu_id.split(',')) > 1
+    return args.is_multi_gpus
+
+
 if __name__ == '__main__':
     args = parser.parse_args()
     init(args)
@@ -61,7 +67,10 @@ if __name__ == '__main__':
         from src.train import run
 
     for iter in range(args.iter):
-        run(args)
+        if is_multi_gpus(args):
+            run_multi_gpus(run, args)
+        else:
+            run(args)
 
 
 
