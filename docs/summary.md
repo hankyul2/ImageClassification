@@ -18,24 +18,24 @@ Cifar10/100 을 학습 하는 방법에는 크게 두 가지가 있다. (내가 
 
 GPU Usage 
 
-| Model                   | 32x32 | 224x224      |
-| ----------------------- | ----- | ------------ |
-| ResNet50                | 2G    | 6.5G         |
-| ResNet101               | 2.2G  | 8.5G         |
-| PreActivation ResNet50  |       |              |
-| PreActivation ResNet101 |       |              |
-| ResNext50               |       |              |
-| ResNext101              |       |              |
-| Wide ResNet50           |       |              |
-| Wide ResNet101          |       |              |
-| EfficientNet_b0         |       |              |
-| EfficientNet_b1         |       |              |
-| ViT base 32x32          | 3G    | 4G           |
-| ViT base 16x16          | 4G    | 9.9G         |
-| ViT large 32x32         | 5G    | 8G           |
-| ViT large 16x16         | 6G    | 15.5G (b:16) |
-| R50 + ViT base 16x16    |       | 14.2G        |
-| R50 + ViT large 32x32   |       | 12G          |
+| Model                   | 32x32 | 224x224      | 384x384 |
+| ----------------------- | ----- | ------------ | ------- |
+| ResNet50                | 2G    | 6.5G         |         |
+| ResNet101               | 2.2G  | 8.5G         |         |
+| PreActivation ResNet50  |       |              |         |
+| PreActivation ResNet101 |       |              |         |
+| ResNext50               |       |              |         |
+| ResNext101              |       |              |         |
+| Wide ResNet50           |       |              |         |
+| Wide ResNet101          |       |              |         |
+| EfficientNet_b0         |       |              |         |
+| EfficientNet_b1         |       |              |         |
+| ViT base 32x32          | 3G    | 4G           |         |
+| ViT base 16x16          | 4G    | 9.9G         |         |
+| ViT large 32x32         | 5G    | 8G           |         |
+| ViT large 16x16         | 6G    | 15.5G (b:16) |         |
+| R50 + ViT base 16x16    |       | 14.2G        |         |
+| R50 + ViT large 32x32   |       | 12G          |         |
 
 *ViT Huge 16x16, R50 + ViT large 16x16는 muti-gpu를 꼭 사용해야 됨 (RTX 3090 기준)*
 
