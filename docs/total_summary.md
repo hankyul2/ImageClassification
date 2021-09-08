@@ -2,7 +2,7 @@
 typora-copy-images-to: pics
 ---
 
-Cifar10/100 Train
+## Cifar10/100 Train
 
 Cifar10/100 을 학습 하는 방법에는 크게 두 가지가 있다. (내가 아는 선에서 정리)
 
@@ -16,26 +16,28 @@ Cifar10/100 을 학습 하는 방법에는 크게 두 가지가 있다. (내가 
 
 
 
-GPU Usage 
+### GPU Usage (b: 32)
 
-| Model                   | 32x32 | 224x224      | 384x384 |
-| ----------------------- | ----- | ------------ | ------- |
-| ResNet50                | 2G    | 6.5G         |         |
-| ResNet101               | 2.2G  | 8.5G         |         |
-| PreActivation ResNet50  |       |              |         |
-| PreActivation ResNet101 |       |              |         |
-| ResNext50               |       |              |         |
-| ResNext101              |       |              |         |
-| Wide ResNet50           |       |              |         |
-| Wide ResNet101          |       |              |         |
-| EfficientNet_b0         |       |              |         |
-| EfficientNet_b1         |       |              |         |
-| ViT base 32x32          | 3G    | 4G           |         |
-| ViT base 16x16          | 4G    | 9.9G         |         |
-| ViT large 32x32         | 5G    | 8G           |         |
-| ViT large 16x16         | 6G    | 15.5G (b:16) |         |
-| R50 + ViT base 16x16    |       | 14.2G        |         |
-| R50 + ViT large 32x32   |       | 12G          |         |
+batch 사이즈는 RTX3090(memory 24GB) 기준으로 single gpu에서 모델을 돌렸을 때 터지지 않는 최대 값을 의미한다. 따라서 만약 R50+ViT base 16x16을 batch size 32로 돌리고 싶다면 GPU(memory 15GB) 2대를 동시에 사용해야 됨을 의미한다.
+
+| Model                   | 32x32 | 224x224      | 384x384     |
+| ----------------------- | ----- | ------------ | ----------- |
+| ResNet50                | 2G    | 6.5G         | -           |
+| ResNet101               | 2.2G  | 8.5G         | -           |
+| PreActivation ResNet50  |       |              |             |
+| PreActivation ResNet101 |       |              |             |
+| ResNext50               |       |              |             |
+| ResNext101              |       |              |             |
+| Wide ResNet50           |       |              |             |
+| Wide ResNet101          |       |              |             |
+| EfficientNet_b0         |       |              |             |
+| EfficientNet_b1         |       |              |             |
+| ViT base 32x32          | 3G    | 4G           | 8G          |
+| ViT base 16x16          | 4G    | 9.9G         | 20G(b:16)   |
+| ViT large 32x32         | 5G    | 8G           | 18.8G       |
+| ViT large 16x16         | 6G    | 15.5G (b:16) | 17G(b:4)    |
+| R50 + ViT base 16x16    | -     | 14.2G        | 14.8G(b:8)  |
+| R50 + ViT large 32x32   | -     | 12G          | 18.2G(b:16) |
 
 *ViT Huge 16x16, R50 + ViT large 16x16는 muti-gpu를 꼭 사용해야 됨 (RTX 3090 기준)*
 
