@@ -7,6 +7,7 @@ from src.model.models import get_model
 from src.base_model_wrapper import BaseModelWrapper
 from src.cifar import get_cifar, convert_to_dataloader
 from src.log import get_log_name, Result
+from src.distributed.dist_wrapper import *
 
 
 class ModelWrapper(BaseModelWrapper):

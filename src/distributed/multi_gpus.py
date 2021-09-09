@@ -20,5 +20,7 @@ def init_process(rank, run, args):
 
 
 def run_multi_gpus(run, args):
+    args.batch_size //= args.world_size
     print('Multi GPUs {}'.format(args.is_multi_gpus))
+    print('batch size per gpu is {}'.format(args.batch_size))
     spawn(fn=init_process, args=(run, args), nprocs=args.world_size)
