@@ -49,6 +49,9 @@ def fix_seed(random_seed):
 
 def is_multi_gpus(args):
     args.is_multi_gpus = args.gpu_id != '' and len(args.gpu_id.split(',')) > 1
+    if args.is_multi_gpus:
+        args.gpu_ids = list(map(int, args.gpu_id.split(',')))
+        args.world_size = len(args.gpu_ids)
     return args.is_multi_gpus
 
 
