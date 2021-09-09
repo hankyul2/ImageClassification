@@ -7,7 +7,7 @@ import random
 
 import torch
 
-from src.multi_gpus import run_multi_gpus
+from src.distributed.multi_gpus import run_multi_gpus
 from src.utils import download_dataset
 
 parser = argparse.ArgumentParser(description='Domain Adaptation')

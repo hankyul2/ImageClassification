@@ -14,7 +14,7 @@ This is from pytorch DDP tutorial. If you want to follow this up, I recommend to
 import torch
 from torch import distributed as dist, nn
 from torch.distributed.optim import ZeroRedundancyOptimizer
-from torch.nn.parallel import DistributedDataParallel as DDP
+
 import torch.nn.functional as F
 from torch.optim import SGD
 
