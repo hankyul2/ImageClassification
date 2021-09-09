@@ -47,7 +47,7 @@ def run(args):
                                               num_workers=args.num_workers, train=False)
 
     # step 2. load model
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cuda:{}'.format(args.rank) if torch.cuda.is_available() else 'cpu')
     model = get_model(args.model_name, nclass=len(train_ds.classes), pretrained=args.pretrained).to(device)
 
     # step 3. prepare training tool

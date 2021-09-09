@@ -52,6 +52,8 @@ def is_multi_gpus(args):
     if args.is_multi_gpus:
         args.gpu_ids = list(map(int, args.gpu_id.split(',')))
         args.world_size = len(args.gpu_ids)
+    else:
+        args.rank = 0
     return args.is_multi_gpus
 
 
