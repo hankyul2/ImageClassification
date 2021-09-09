@@ -8,6 +8,7 @@ This is from pytorch DDP tutorial. If you want to follow this up, I recommend to
     - you have to understand torch.distributed.scatter, gather, all_gather, reduce, all_reduce, broadcast
     - you have to understand how backend and init_method works
 3. Study "https://pytorch.org/tutorials/recipes/zero_redundancy_optimizer.html" for Shard Optimizer.
+    - you have to understand how torch.distributed.ZeroRedundancyOptimizer works.
 4. Study Python Wrapper, which makes code very simple.
 """
 import torch
