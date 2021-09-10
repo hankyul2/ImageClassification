@@ -56,8 +56,8 @@ def remove_log_wrapper(rank, log_name, start_time):
 def ignore_stdout(rank):
     if rank != 0:
         f = open(os.devnull, 'w')
-        # sys.stdout = f
-        # sys.stderr = f
+        sys.stdout = f
+        sys.stderr = f
 
 
 def apply_wrapper(rank, log_name, start_time):
