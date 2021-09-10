@@ -1,3 +1,4 @@
+import datetime
 import sys
 import os
 import argparse
@@ -9,6 +10,7 @@ import torch
 
 from src.distributed.multi_gpus import run_multi_gpus
 from src.utils import download_dataset
+from src.log import get_log_name
 
 parser = argparse.ArgumentParser(description='Domain Adaptation')
 parser.add_argument('-g', '--gpu_id', type=str, default='', help='Enter which gpu you want to use')
@@ -35,10 +37,15 @@ parser.add_argument('--update_best_result', action='store_true', help='If specif
 
 def init(args):
     sys.path.append('.')
+
     if args.random_seed:
         fix_seed(args.random_seed)
+
     os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu_id
     print('DEVICE: {}'.format('cpu' if args.gpu_id == '' else args.gpu_id))
+
+    args.log_name = get_log_name(args)
+    args.start_time = datetime.datetime.now().strftime('%Y-%m-%d/%H-%M-%S')
 
 
 def fix_seed(random_seed):
@@ -67,7 +74,7 @@ if __name__ == '__main__':
         download_dataset(args.data_path)
         exit(0)
     elif args.update_best_result:
-        from src.log import run
+        from src.log import run, get_log_name
     else:
         from src.train import run
 

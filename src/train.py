@@ -6,13 +6,13 @@ import torch.optim.lr_scheduler as LR
 from src.model.models import get_model
 from src.base_model_wrapper import BaseModelWrapper
 from src.cifar import get_cifar, convert_to_dataloader
-from src.log import get_log_name, Result
+from src.log import Result
 from src.distributed.dist_wrapper import *
 
 
 class ModelWrapper(BaseModelWrapper):
-    def __init__(self, log_name, model, device, criterion, optimizer):
-        super().__init__(log_name)
+    def __init__(self, log_name, start_time, model, device, criterion, optimizer):
+        super().__init__(log_name, start_time)
         self.model = model
         self.device = device
         self.criterion = criterion
@@ -56,7 +56,7 @@ def run(args):
     optimizer = MyOpt(model=model, nbatch=len(train_dl), lr=args.lr)
 
     # step 4. train
-    model = ModelWrapper(log_name=get_log_name(args), model=model, device=device, optimizer=optimizer,
+    model = ModelWrapper(log_name=args.log_name, start_time=args.start_time, model=model, device=device, optimizer=optimizer,
                          criterion=criterion)
     model.fit(train_dl, valid_dl, test_dl=None, nepoch=args.nepoch)
 

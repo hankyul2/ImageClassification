@@ -8,19 +8,17 @@ from src.distributed.multi_gpus_tutorial import run_tutorial_DDP_optimizer
 
 
 def init_process(rank, run, args):
-    print('Rank {} init start'.format(rank))
     args.rank = rank
     os.environ['MASTER_ADDR'] = '127.0.0.1'
     os.environ['MASTER_PORT'] = '29500'
     os.environ['WORLD_SIZE'] = str(args.world_size)
     os.environ['RANK'] = str(args.rank)
-    apply_wrapper(args.rank)
+    apply_wrapper(args.rank, args.log_name, args.start_time)
     dist.init_process_group(backend='nccl', world_size=args.world_size, rank=args.rank)
     run(args)
 
 
 def run_multi_gpus(run, args):
-    args.batch_size //= args.world_size
-    print('Multi GPUs {}'.format(args.is_multi_gpus))
+    print('Multi GPUs {}'.format(args.gpu_ids))
     print('batch size per gpu is {}'.format(args.batch_size))
     spawn(fn=init_process, args=(run, args), nprocs=args.world_size)

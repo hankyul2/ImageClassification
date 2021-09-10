@@ -3,9 +3,9 @@ from torchvision import transforms
 from torchvision.datasets import CIFAR10, CIFAR100
 
 
-def convert_to_dataloader(datasets, batch_size, num_workers, train=True):
+def convert_to_dataloader(datasets, batch_size, num_workers, train=True, sampler_fn=lambda x: None):
     return [torch.utils.data.DataLoader(ds, batch_size=batch_size, shuffle=train, num_workers=num_workers,
-                                        drop_last=True) for ds in datasets]
+                                        drop_last=True, sampler=sampler_fn(ds)) for ds in datasets]
 
 
 def get_cifar(dataset_name, size=(32, 32)):

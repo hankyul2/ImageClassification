@@ -11,19 +11,24 @@ from src.utils import AverageMeter, ProgressMeter, accuracy
 
 
 class BaseModelWrapper:
-    def __init__(self, log_name):
+    def __init__(self, log_name, start_time):
         self.best_acc = 0
         self.best_epoch = 0
         self.model = None
         self.device = None
+        self.writer = None
         self.logger = logging.getLogger()
         setup_directory(log_name)
-        self.time = datetime.datetime.now().strftime('%Y-%m-%d/%H-%M-%S')
+        self.time = start_time
         self.log_name = '{}/{}'.format(log_name, self.time)
         self.log_best_weight_path = 'log/best_weight/{}.pth'.format(self.log_name)
+        self.setup_writer(log_name)
+        self.setup_file_logger('log/text/{}.txt'.format(self.log_name))
+        self.trace_handler = torch.profiler.tensorboard_trace_handler('log/tensor_board/{}'.format(self.log_name))
+
+    def setup_writer(self, log_name):
         self.writer = SummaryWriter(log_dir='log/tensor_board/{}'.format(self.log_name),
                                     filename_suffix=log_name.replace('/', '_'))
-        self.setup_file_logger('log/text/{}.txt'.format(self.log_name))
 
     def setup_file_logger(self, log_file):
         hdlr = logging.FileHandler(log_file)
@@ -132,6 +137,9 @@ class BaseModelWrapper:
         best_acc = 0
         best_acc_arg = 0
 
+        # Todo: This profiler does not work
+        # self.profile_model(train_dl)
+
         for epoch in range(nepoch):
             train_loss, train_acc = self.train(train_dl, epoch)
             valid_loss, valid_acc = self.valid(valid_dl)
@@ -175,3 +183,25 @@ class BaseModelWrapper:
         self.log('[EVALUATE] {}-crop loss {:07.4f}  |  {}-crop acc {:07.4f}%'.format(ncrop, total_loss, ncrop,
                                                                                      total_acc * 100))
         print('=' * 150)
+
+    def profile_model(self, train_dl):
+        with torch.profiler.profile(
+                activities=[
+                    torch.profiler.ProfilerActivity.CPU,
+                    torch.profiler.ProfilerActivity.CUDA],
+                schedule=torch.profiler.schedule(wait=1, warmup=1, active=3, repeat=2),
+                on_trace_ready=self.trace_handler,
+                record_shapes=False,
+                with_stack=False
+        ) as prof:
+            self.model.train()
+            for step, (x, y) in enumerate(train_dl):
+                if step >= (1 + 1 + 3) * 2:
+                    break
+                intput, label = x.to(self.device), y.to(self.device)
+                loss, std_y_hat = self.forward(intput, label, 0)
+                acc1, acc5 = accuracy(std_y_hat, label, topk=(1, 5))
+                loss.backward()
+                self.optimizer.step()
+                self.optimizer.zero_grad()
+                prof.step()

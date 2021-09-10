@@ -56,7 +56,8 @@ def change_384_224(model_name):
 
 
 def load_npz_from_url(url, file_name):
-    subprocess.run(["wget", "-r", "-nc", '-O', file_name, url])
+    if not Path(file_name).exists():
+        subprocess.run(["wget", "-r", "-nc", '-O', file_name, url])
     return np.load(file_name)
 
 
