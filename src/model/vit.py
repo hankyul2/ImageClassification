@@ -123,7 +123,7 @@ def dim_convertor(name, weight):
     weight = torch.from_numpy(weight)
     if 'kernel' in name:
         if weight.dim() == 2:
-            weight = rearrange(weight, 'in out -> out in')
+            weight = rearrange(weight, 'in_c out_c -> out_c in_c')
         elif weight.dim() == 3:
             if 'out' in name:
                 weight = rearrange(weight, 'h k d -> d (h k)')
