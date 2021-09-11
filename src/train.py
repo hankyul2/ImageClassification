@@ -43,13 +43,13 @@ class MyOpt:
 def run(args):
     # step 1. prepare dataset
     train_ds, valid_ds, test_ds = get_cifar(args.dataset, size=args.img_size)
-    train_dl, = convert_to_dataloader([train_ds], batch_size=args.batch_size, num_workers=args.num_workers, train=True)
+    train_dl, = convert_to_dataloader([train_ds], batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True)
     valid_dl, test_dl = convert_to_dataloader([valid_ds, test_ds], batch_size=args.batch_size,
-                                              num_workers=args.num_workers, train=False)
+                                              num_workers=args.num_workers, shuffle=False)
 
     # step 2. load model
     device = torch.device('cuda:{}'.format(args.rank) if torch.cuda.is_available() else 'cpu')
-    model = get_model(args.model_name, nclass=len(train_ds.classes), device=device, pretrained=args.pretrained)
+    model = get_model(args.model_name, nclass=len(train_ds.dataset.classes), device=device, pretrained=args.pretrained)
 
     # step 3. prepare training tool
     criterion = nn.CrossEntropyLoss()
@@ -60,6 +60,9 @@ def run(args):
                          criterion=criterion)
     model.fit(train_dl, valid_dl, test_dl=None, nepoch=args.nepoch)
 
-    # (extra) step 5. save result
+    # step 5. evaluate on test set
+    pass
+
+    # (extra) step 6. save result
     result_saver = Result()
     result_saver.save_result(args, model)
