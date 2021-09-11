@@ -49,7 +49,8 @@ def run(args):
 
     # step 2. load model
     device = torch.device('cuda:{}'.format(args.rank) if torch.cuda.is_available() else 'cpu')
-    model = get_model(args.model_name, nclass=len(train_ds.dataset.classes), device=device, pretrained=args.pretrained)
+    model = get_model(args.model_name, nclass=len(train_ds.dataset.classes), device=device,
+                      pretrained=args.pretrained, dropout=args.dropout)
 
     # step 3. prepare training tool
     criterion = nn.CrossEntropyLoss()

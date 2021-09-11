@@ -21,6 +21,7 @@ parser.add_argument('-m', '--model_name', type=str.lower, default='', choices=[
     'vit_base_patch16_384', 'vit_base_patch32_384', 'vit_large_patch16_384', 'vit_large_patch32_384',
     'r50_vit_base_patch16_224', 'r50_vit_large_patch32_224', 'r50_vit_base_patch16_384', 'r50_vit_large_patch32_384',
 ], help='Enter model name')
+parser.add_argument('-p', '--dropout', type=float, default=0.0, help='Enter dropout rate')
 parser.add_argument('-d', '--dataset', type=str, default='', help='Enter dataset')
 parser.add_argument('-s', '--img_size', type=int, default=(224, 224), nargs='+', help='Enter Image Size')
 parser.add_argument('-b', '--batch_size', type=int, default=32, help='Enter batch size for train step')

@@ -58,7 +58,7 @@ class ResNet32(nn.Module):
         return nn.Sequential(*layers)
 
 
-def get_resnet32(model_name: str, nclass=1000, zero_init_residual=False, dataset=None) -> nn.Module:
+def get_resnet32(model_name: str, nclass=1000, zero_init_residual=False, dataset=None, **kwargs) -> nn.Module:
     if model_name == 'resnet32_20':
         model = ResNet32(block=BasicBlock, nblock=[3, 3, 3], nclass=nclass)
     elif model_name == 'resnet32_110':

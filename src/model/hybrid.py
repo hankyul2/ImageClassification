@@ -28,7 +28,7 @@ class Hybrid(nn.Module):
         self.vit.load_npz(npz)
 
 
-def get_hybrid(model_name, nclass=1000, pretrained=False, pre_logits=False):
+def get_hybrid(model_name, nclass=1000, pretrained=False, pre_logits=False, dropout=0.1, **kwargs):
     if 'vit_base' in model_name:
         num_layer, d_model, h, d_ff, N = [3, 4, 9], 768, 12, 3072, 12
     elif 'vit_large' in model_name:
@@ -37,7 +37,7 @@ def get_hybrid(model_name, nclass=1000, pretrained=False, pre_logits=False):
     cnn = ResNet(BottleNeck, num_layer, nclass=nclass, norm_layer=partial(nn.GroupNorm, 32))
     feature_dim, feature_size = get_feature_map_info(cnn, model_name)
     vit = build_vit(patch_size=(1, 1), img_size=feature_size, in_channel=feature_dim, d_model=d_model,
-                    h=h, d_ff=d_ff, N=N, nclass=0, pre_logits=pre_logits)
+                    h=h, d_ff=d_ff, N=N, nclass=0, pre_logits=pre_logits, dropout=dropout)
     fc = nn.Linear(d_model, nclass)
     hybrid = Hybrid(cnn=cnn, vit=vit, fc=fc)
 
