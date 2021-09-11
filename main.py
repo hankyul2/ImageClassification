@@ -35,54 +35,58 @@ parser.add_argument('--download_dataset', action='store_true',
 parser.add_argument('--update_best_result', action='store_true', help='If specify, it will update best result log')
 
 
-def init(args):
-    sys.path.append('.')
-
-    if args.random_seed:
-        fix_seed(args.random_seed)
-
-    os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu_id
-    print('DEVICE: {}'.format('cpu' if args.gpu_id == '' else args.gpu_id))
-
-    args.log_name = get_log_name(args)
-    args.start_time = datetime.datetime.now().strftime('%Y-%m-%d/%H-%M-%S')
-
-
-def fix_seed(random_seed):
+def init_seed(random_seed):
+    if args.random_seed is None:
+        return
     np.random.seed(random_seed)
     random.seed(random_seed)
     torch.manual_seed(random_seed)
 
 
-def is_multi_gpus(args):
-    args.is_multi_gpus = args.gpu_id != '' and len(args.gpu_id.split(',')) > 1
-    if args.is_multi_gpus:
-        args.gpu_ids = list(map(int, args.gpu_id.split(',')))
-        args.world_size = len(args.gpu_ids)
-    else:
-        args.rank = 0
-    return args.is_multi_gpus
+def init_cli_arg(args):
+    args.log_name = get_log_name(args)
+    args.start_time = datetime.datetime.now().strftime('%Y-%m-%d/%H-%M-%S')
+    args.gpu_id_list = list(map(int, args.gpu_id.split(',')))
+    args.world_size = max(1, len(args.gpu_id_list))
+    args.rank = 0
+    args.total_batch_size = args.batch_size * args.world_size
+    args.is_multi_gpu = args.world_size > 1
+
+
+def show_info(args):
+    print('DEVICE is {}'.format('cpu' if args.gpu_id == '' else args.gpu_id))
+    print('is multi gpu? {}'.format(args.is_multi_gpu))
+    print('total batch size is {}'.format(args.total_batch_size))
+    print('world size is {}'.format(args.world_size))
+    print('Model name is {}'.format(args.model_name))
+    print('Dataset name is {}'.format(args.dataset))
+    print('image size is {}'.format(args.img_size))
+    print('start time is {}'.format(args.start_time))
+
+
+def init(args):
+    sys.path.append('.')
+    os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu_id
+
+    init_seed(args.random_seed)
+    init_cli_arg(args)
+    show_info(args)
 
 
 if __name__ == '__main__':
     args = parser.parse_args()
     init(args)
-    print('Model name is {}'.format(args.model_name))
-    print('image size is {}'.format(args.img_size))
 
     if args.download_dataset:
         download_dataset(args.data_path)
         exit(0)
     elif args.update_best_result:
-        from src.log import run, get_log_name
+        from src.log import run
     else:
         from src.train import run
 
     for iter in range(args.iter):
-        if is_multi_gpus(args):
+        if args.is_multi_gpu:
             run_multi_gpus(run, args)
         else:
             run(args)
-
-
-
