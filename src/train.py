@@ -58,10 +58,11 @@ def run(args):
     # step 4. train
     model = ModelWrapper(log_name=args.log_name, start_time=args.start_time, model=model, device=device, optimizer=optimizer,
                          criterion=criterion)
-    model.fit(train_dl, valid_dl, test_dl=None, nepoch=args.nepoch)
+    model.fit(train_dl, valid_dl, nepoch=args.nepoch)
 
-    # step 5. evaluate on test set
-    pass
+    # step 5. evaluate
+    model.load_best_weight()
+    model.evaluate(test_dl)
 
     # (extra) step 6. save result
     result_saver = Result()

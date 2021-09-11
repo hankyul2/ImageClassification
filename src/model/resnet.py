@@ -91,7 +91,7 @@ def npz_dim_convertor(name, weight):
     return weight
 
 
-def get_resnet(model_name: str, nclass=1000, zero_init_residual=False, pretrained=False, dataset=None) -> nn.Module:
+def get_resnet(model_name: str, nclass=1000, zero_init_residual=False, pretrained=False, dataset=None, **kwargs) -> nn.Module:
     if model_name == 'resnet18':
         model = ResNet(block=BasicBlock, nblock=[2, 2, 2, 2], nclass=nclass)
     elif model_name == 'resnet34':

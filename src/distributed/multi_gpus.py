@@ -13,12 +13,10 @@ def init_process(rank, run, args):
     os.environ['MASTER_PORT'] = '29500'
     os.environ['WORLD_SIZE'] = str(args.world_size)
     os.environ['RANK'] = str(args.rank)
-    apply_wrapper(args.rank, args.log_name, args.start_time)
+    apply_wrapper(args.rank, args.world_size, args.log_name, args.start_time)
     dist.init_process_group(backend='nccl', world_size=args.world_size, rank=args.rank)
     run(args)
 
 
 def run_multi_gpus(run, args):
-    print('Multi GPUs {}'.format(args.gpu_ids))
-    print('batch size per gpu is {}'.format(args.batch_size))
     spawn(fn=init_process, args=(run, args), nprocs=args.world_size)
