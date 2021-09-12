@@ -40,7 +40,7 @@ ViT + ResNet50 모델의 경우 기존에 이미지를 그대로 사용하던 �
 | Epoch      | 100 (10k step * 512 batch size)     | 50          |
 | LR         | 3e-2                                | 3e-4        |
 | Batch Size | 512                                 | 32          |
-| Resolution | 384                                 | 224, 384    |
+| Resolution | 384                                 | 384         |
 
 
 
