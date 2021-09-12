@@ -91,3 +91,4 @@ if __name__ == '__main__':
             run_multi_gpus(run, args)
         else:
             run(args)
+        init_cli_arg(args)

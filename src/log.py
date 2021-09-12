@@ -26,7 +26,7 @@ class Result:
 
         # Todo: Change This whenever you apply this utils to other domain
         self.headers = ['no', 'model_name', 'dataset', 'time', 'top1_acc', 'top5_acc', 'valid_best_acc', 'valid_best_epoch',
-                        'nepoch', 'lr', 'total_batch_size', 'world_size', 'max_gpu_usage', 'log_best_weight_path']
+                        'nepoch', 'lr', 'dropout', 'total_batch_size', 'world_size', 'max_gpu_usage', 'log_best_weight_path']
         self.best_result_identity_name = 'model_name'
         self.best_result_column_idx = [1, 2]
         self.acc_idx = self.headers.index('top1_acc')
