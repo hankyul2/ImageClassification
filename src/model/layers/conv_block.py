@@ -96,7 +96,7 @@ class InvertedBottleNeckDepthWiseBlock(nn.Module):
     def forward(self, x):
         x = self.act(self.point_wise_conv(x))
         x = self.act(self.depth_wise_conv(x))
-        x = self.downsample(x) + self.act(self.bottle_neck_conv(x))
+        x = self.downsample(x) + self.bottle_neck_conv(x)
         return x
 
 
