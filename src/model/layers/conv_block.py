@@ -83,6 +83,23 @@ class PreActBottleNeck(BottleNeck):
         return self.downsample(x) + self.conv3(F.relu(self.bn3(out)))
 
 
+class InvertedBottleNeckDepthWiseBlock(nn.Module):
+    def __init__(self, factor=6, in_channels=3, out_channels=64, stride=2, downsample=None, act=F.relu6):
+        super(InvertedBottleNeckDepthWiseBlock, self).__init__()
+        inter_channel = in_channels * factor
+        self.act = act
+        self.point_wise_conv = conv1x1(in_channels, inter_channel, stride=1)
+        self.depth_wise_conv = conv3x3(inter_channel, inter_channel, stride=stride, groups=inter_channel)
+        self.bottle_neck_conv = conv1x1(inter_channel, out_channels, stride=1)
+        self.downsample = downsample if downsample else nn.Identity()
+
+    def forward(self, x):
+        x = self.act(self.point_wise_conv(x))
+        x = self.act(self.depth_wise_conv(x))
+        x = self.downsample(x) + self.act(self.bottle_neck_conv(x))
+        return x
+
+
 def resnet_normal_init(model):
     for m in model.modules():
         if isinstance(m, nn.Conv2d):
