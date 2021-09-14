@@ -25,6 +25,14 @@ model_urls = {
     # MobileNetV2
     'mobilenet_v2': 'https://download.pytorch.org/models/mobilenet_v2-b0353104.pth',
 
+    # Se ResNet
+    'seresnet18': 'https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-weights/seresnet18-4bb0ce65.pth',
+    'seresnet34': 'https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-weights/seresnet34-a4004e63.pth',
+    'seresnet50': 'https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-cadene/se_resnet50-ce0d4300.pth',
+    'seresnet101': 'https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-cadene/se_resnet101-7e38fcc6.pth',
+    'seresnet152': 'https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-cadene/se_resnet152-d17c99b7.pth',
+    'seresnext50_32x4d': 'http://data.lip6.fr/cadene/pretrainedmodels/se_resnext50_32x4d-a260b3a4.pth',
+
     # ViT
     'vit_base_patch16_224': 'https://storage.googleapis.com/vit_models/imagenet21k/ViT-B_16.npz',
     'vit_base_patch32_224': 'https://storage.googleapis.com/vit_models/imagenet21k/ViT-B_32.npz',
