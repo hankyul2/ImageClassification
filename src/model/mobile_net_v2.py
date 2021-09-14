@@ -50,6 +50,9 @@ class MobileNetV2(nn.Module):
     def forward(self, x):
         return self.fc(torch.flatten(self.avg_pool(self.features(x)), 1))
 
+    def predict(self, x):
+        return self.fc(torch.flatten(self.avg_pool(self.features(x)), 1))
+
 
 def get_mobilenet_v2(model_name:str, nclass=100, pretrained=True, **kwargs) -> nn.Module:
     """Get mobilenet_v2 only support 1 model"""
