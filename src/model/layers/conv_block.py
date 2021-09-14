@@ -83,28 +83,26 @@ class PreActBottleNeck(BottleNeck):
         return self.downsample(x) + self.conv3(F.relu(self.bn3(out)))
 
 
+class ConvBNReLU(nn.Sequential):
+    """This is made following torchvision works"""
+    def __init__(self, in_channel, out_channel, stride, conv_layer, norm_layer, act):
+        super(ConvBNReLU, self).__init__(conv_layer(in_channel, out_channel, stride=stride), norm_layer(out_channel), act())
+
+
 class InvertedResidualBlock(nn.Module):
-    def __init__(self, factor, in_channels, out_channels, stride, norm_layer, downsample=None, dropout=0.1, act=F.relu6):
+    def __init__(self, factor, in_channels, out_channels, stride, norm_layer, act=nn.ReLU6):
         super(InvertedResidualBlock, self).__init__()
         inter_channel = in_channels * factor
-        self.act = act
-        self.point_wise_conv = conv1x1(in_channels, inter_channel, stride=1)
-        self.depth_wise_conv = conv3x3(inter_channel, inter_channel, stride=stride, groups=inter_channel)
-        self.bottle_neck_conv = conv1x1(inter_channel, out_channels, stride=1)
+        self.conv = nn.Sequential(
+            ConvBNReLU(in_channels, inter_channel, 1, conv1x1, norm_layer, act),
+            ConvBNReLU(inter_channel, inter_channel, stride, conv3x3, norm_layer, act),
+            conv1x1(inter_channel, out_channels, stride=1), norm_layer(out_channels)
+        )
 
-        self.bn1 = norm_layer(inter_channel)
-        self.bn2 = norm_layer(inter_channel)
-
-        self.dropout1 = nn.Dropout(p=dropout)
-        self.dropout2 = nn.Dropout(p=dropout)
-
-        self.downsample = downsample if downsample else nn.Identity()
+        self.skip_connection = nn.Identity() if stride == 1 and in_channels == out_channels else lambda x: 0
 
     def forward(self, x):
-        out = self.dropout1(self.act(self.bn1(self.point_wise_conv(x))))
-        out = self.dropout2(self.act(self.bn2(self.depth_wise_conv(out))))
-        out = self.downsample(x) + self.bottle_neck_conv(out)
-        return out
+        return self.skip_connection(x) + self.conv(x)
 
 
 def resnet_normal_init(model):

@@ -8,4 +8,4 @@ def test_mobile_net_v2():
     x = torch.rand((8, 3, 224, 224))
     model = MobileNetV2(block=InvertedResidualBlock, nclass=10)
     output = model(x)
-    assert list(output.shape) == [8, 10, 1, 1]
+    assert list(output.shape) == [8, 10]
