@@ -15,6 +15,7 @@ class BasicBlock(nn.Module):
 
     def __init__(self, in_channels, out_channels, stride, norm_layer, downsample=None, groups=1, base_width=64):
         super(BasicBlock, self).__init__()
+        self.out_channels = out_channels
         self.conv1 = conv3x3(in_channels=in_channels, out_channels=out_channels, stride=stride)
         self.conv2 = conv3x3(in_channels=out_channels, out_channels=out_channels)
         self.bn1 = norm_layer(out_channels)
@@ -49,12 +50,13 @@ class BottleNeck(nn.Module):
     def __init__(self, in_channels, out_channels, stride, norm_layer, downsample=None, groups=1, base_width=64):
         super(BottleNeck, self).__init__()
         self.width = width = int(out_channels * (base_width / 64.0)) * groups
+        self.out_channels = out_channels * self.factor
         self.conv1 = conv1x1(in_channels, width)
         self.conv2 = conv3x3(width, width, stride, groups=groups)
-        self.conv3 = conv1x1(width, out_channels * self.factor)
+        self.conv3 = conv1x1(width, self.out_channels)
         self.bn1 = norm_layer(width)
         self.bn2 = norm_layer(width)
-        self.bn3 = norm_layer(out_channels * self.factor)
+        self.bn3 = norm_layer(self.out_channels)
         self.downsample = downsample if downsample else nn.Identity()
 
     def forward(self, x):
@@ -107,13 +109,36 @@ class InvertedResidualBlock(nn.Module):
         return self.skip_connection(x) + self.conv(x)
 
 
-class SEUnit(nn.Sequential):
-    def __init__(self, in_channel, reduction_ratio):
-        super(SEUnit, self).__init__(
-            nn.AdaptiveAvgPool2d((1,1)),
-            conv1x1(in_channel, in_channel//reduction_ratio), nn.ReLU(),
-            conv1x1(in_channel//reduction_ratio, in_channel), nn.Sigmoid(),
-        )
+class SEUnit(nn.Module):
+    def __init__(self, in_channel, reduction_ratio=16):
+        super(SEUnit, self).__init__()
+        self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
+        self.w_1 = conv1x1(in_channel, in_channel // reduction_ratio)
+        self.w_2 = conv1x1(in_channel // reduction_ratio, in_channel)
+
+    def forward(self, x):
+        return x * F.sigmoid(self.w_2(F.relu(self.w_1(self.avg_pool(x)))))
+
+
+class SEBasicBlock(BasicBlock):
+    def __init__(self, *args, reduction_ratio=16, **kwargs):
+        super(SEBasicBlock, self).__init__(*args, **kwargs)
+        self.se_module = SEUnit(self.out_channels, reduction_ratio)
+
+    def forward(self, x):
+        out = F.relu(self.bn1(self.conv1(x)))
+        return F.relu(self.downsample(x) + self.se_module(self.bn2(self.conv2(out))))
+
+
+class SEBottleNeck(BottleNeck):
+    def __init__(self, *args, reduction_ratio=16, **kwargs):
+        super(SEBottleNeck, self).__init__(*args, **kwargs)
+        self.se_module = SEUnit(self.out_channels, reduction_ratio)
+
+    def forward(self, x):
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = F.relu(self.bn2(self.conv2(out)))
+        return F.relu(self.downsample(x) + self.se_module(self.bn3(self.conv3(out))))
 
 
 def resnet_normal_init(model):
