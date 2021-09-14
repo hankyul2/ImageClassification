@@ -16,12 +16,20 @@ class Hybrid(nn.Module):
         self.vit = vit
         self.fc = fc
 
-    def predict(self, x):
+    def features(self, x):
         x = self.cnn.features(x)
-        return self.fc(self.vit(x))
+        return self.vit(x)
 
-    def forward(self, x):
-        return self.predict(x)
+    def forward_impl(self, x):
+        x = self.features(x)
+        return self.fc(x)
+
+    def predict(self, x):
+        x = self.features(x)
+        return self.fc(x)
+
+    def forward(self, *args):
+        return self.features(*args) if self.training else self.predict(*args)
 
     def load_npz(self, npz):
         self.cnn.load_npz(npz)

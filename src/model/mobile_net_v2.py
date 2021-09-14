@@ -47,11 +47,17 @@ class MobileNetV2(nn.Module):
             stride = 1
         return layers
 
-    def forward(self, x):
-        return self.fc(torch.flatten(self.avg_pool(self.features(x)), 1))
+    def features(self, x):
+        return torch.flatten(self.avg_pool(self.features(x)), 1)
+
+    def forward_impl(self, x):
+        return self.fc(self.features(x))
 
     def predict(self, x):
-        return self.fc(torch.flatten(self.avg_pool(self.features(x)), 1))
+        return self.fc(self.features(x))
+
+    def forward(self, *args):
+        return self.features(*args) if self.training else self.predict(*args)
 
 
 def get_mobilenet_v2(model_name:str, nclass=100, pretrained=True, **kwargs) -> nn.Module:

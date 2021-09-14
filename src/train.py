@@ -7,7 +7,6 @@ from src.model.models import get_model
 from src.base_model_wrapper import BaseModelWrapper
 from src.cifar import get_cifar, convert_to_dataloader
 from src.log import Result
-from src.distributed.dist_wrapper import *
 
 
 class ModelWrapper(BaseModelWrapper):
@@ -22,7 +21,7 @@ class ModelWrapper(BaseModelWrapper):
 class MyOpt:
     def __init__(self, model, lr, nbatch, weight_decay=0.0005, momentum=0.95):
         self.optimizer = SGD([
-            {'params': model.fc.parameters(), 'lr': lr},
+            {'params': [param for name, param in model.named_parameters() if 'fc' in name], 'lr': lr},
             {'params': [param for name, param in model.named_parameters() if 'fc' not in name], 'lr': lr/10}
         ], lr=lr, momentum=momentum, weight_decay=weight_decay)
         self.scheduler = LR.MultiStepLR(self.optimizer, milestones=[17, 33], gamma=0.1)

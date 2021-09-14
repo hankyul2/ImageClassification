@@ -76,10 +76,7 @@ def init(args):
     show_info(args)
 
 
-if __name__ == '__main__':
-    args = parser.parse_args()
-    init(args)
-
+def main(args):
     if args.download_dataset:
         download_dataset(args.data_path)
         exit(0)
@@ -87,10 +84,16 @@ if __name__ == '__main__':
         from src.log import run
     else:
         from src.train import run
+    run(args)
+
+
+if __name__ == '__main__':
+    args = parser.parse_args()
+    init(args)
 
     for iter in range(args.iter):
         if args.is_multi_gpu:
-            run_multi_gpus(run, args)
+            run_multi_gpus(main, args)
         else:
-            run(args)
+            main(args)
         init_cli_arg(args)

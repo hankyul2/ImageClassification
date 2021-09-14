@@ -24,14 +24,23 @@ class ResNet32(nn.Module):
         self.layers = [self.make_layer(block=block, nblock=nblock[i], channels=channels[i]) for i in range(len(nblock))]
         self.register_layer()
 
-    def forward(self, x):
+    def features(self, x):
         x = self.relu(self.bn1(self.conv1(x)))
         for layer in self.layers:
             x = layer(x)
+        return x
+
+    def forward_impl(self, x):
+        x = self.features(x)
         return self.fc(self.flatten(self.avgpool(x)))
 
     def predict(self, x):
-        return self.forward(x)
+        x = self.features(x)
+        return self.fc(self.flatten(self.avgpool(x)))
+
+    def forward(self, *args):
+        return self.forward_impl(*args) if self.training else self.predict(*args)
+
 
     def register_layer(self):
         for i, layer in enumerate(self.layers):

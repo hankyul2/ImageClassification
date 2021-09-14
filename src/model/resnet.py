@@ -59,12 +59,16 @@ class ResNet(nn.Module):
             x = layer(x)
         return x
 
+    def forward_impl(self, x):
+        x = self.features(x)
+        return self.fc(self.flatten(self.avgpool(x)))
+
     def predict(self, x):
         x = self.features(x)
         return self.fc(self.flatten(self.avgpool(x)))
 
-    def forward(self, x):
-        return self.predict(x)
+    def forward(self, *args):
+        return self.forward_impl(*args) if self.training else self.predict(*args)
 
     def load_npz(self, npz):
         name_convertor = [

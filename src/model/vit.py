@@ -161,16 +161,23 @@ class VIT(nn.Module):
         self.pre_logits = pre_logits
         self.fc = fc
 
-    def forward(self, x):
-        x = self.encode(x)
-        return self.fc(self.pre_logits(x[:, 0]))
-
-    def predict(self, x):
-        x = self.encode(x)
-        return self.fc(self.pre_logits(x[:, 0]))
-
     def encode(self, x):
         return self.encoder(self.embed(x))
+
+    def features(self, x):
+        x = self.encode(x)
+        return self.pre_logits(x[:, 0])
+
+    def forward_impl(self, x):
+        x = self.features(x)
+        return self.fc(x)
+
+    def predict(self, x):
+        x = self.features(x)
+        return self.fc(x)
+
+    def forward(self, *args):
+        return self.forward_impl(*args) if self.training else self.predict(*args)
 
     def load_npz(self, npz):
         name_convertor = [

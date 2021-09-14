@@ -121,7 +121,7 @@ class BaseModelWrapper:
         end = time.time()
         for step, (x, y) in enumerate(dl):
             x, y = x.float().to(self.device), y.long().to(self.device)
-            y_hat = self.model.predict(x)
+            y_hat = self.model(x)
             loss = F.cross_entropy(y_hat, y)
 
             acc1, acc5 = accuracy(y_hat, y, topk=(1, 5))
@@ -172,7 +172,7 @@ class BaseModelWrapper:
         end = time.time()
         for step, (x, y) in enumerate(dl):
             x, y = x.float().to(self.device), y.long().to(self.device)
-            y_hat = self.model.predict(x)
+            y_hat = self.model(x)
             loss = F.cross_entropy(y_hat, y)
 
             acc1, acc5 = accuracy(y_hat, y, topk=(1, 5))

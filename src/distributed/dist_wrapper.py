@@ -5,27 +5,24 @@ import torch
 import torch.distributed as dist
 from torch.distributed.optim import ZeroRedundancyOptimizer
 from torch.nn.parallel import DistributedDataParallel as DDP
-from torch.optim import SGD, Adam
-from src.model.models import get_model
-from src.base_model_wrapper import BaseModelWrapper
-from src.log import Result
-from src.cifar import convert_to_dataloader
-from src.utils import AverageMeter
+from src import base_model_wrapper, log, cifar, utils
+from src.model import models
+from torch import optim
 
 
 def dataloader_wrapper(fn):
-    def wrpper(*args, **kwargs):
+    def wrapper(*args, **kwargs):
         out = fn(*args, **kwargs, sampler_fn=torch.utils.data.distributed.DistributedSampler)
         return out
 
-    return wrpper
+    return wrapper
 
 
 def ddp_wrapper(rank):
     def middle_wrapper(fn):
         def wrapper(*args, **kwargs):
             out = fn(*args, **kwargs)
-            out = DDP(out, device_ids=[rank])
+            out = DDP(out, device_ids=[rank], find_unused_parameters=True)
             return out
 
         return wrapper
@@ -99,20 +96,12 @@ def ignore_stdout(rank):
         sys.stderr = f
 
 
-def apply_wrapper(rank, world_size, log_name, start_time):
-    global convert_to_dataloader
-    global get_model
-    global SGD
-    global Adam
-    global AverageMeter
-    global BaseModelWrapper
-    global Result
-
-    convert_to_dataloader = dataloader_wrapper(convert_to_dataloader)
-    get_model = ddp_wrapper(rank)(get_model)
-    SGD = shard_optimizer_wrapper(SGD)
-    Adam = shard_optimizer_wrapper(Adam)
-    AverageMeter.update = metric_wrapper(world_size)(AverageMeter.update)
-    BaseModelWrapper = model_wrapper(rank, log_name, start_time)(BaseModelWrapper)
-    Result = result_wrapper(rank)(Result)
+def apply_dist(rank, world_size, log_name, start_time):
+    cifar.convert_to_dataloader = dataloader_wrapper(cifar.convert_to_dataloader)
+    models.get_model = ddp_wrapper(rank)(models.get_model)
+    # optim.SGD = shard_optimizer_wrapper(optim.SGD)
+    # optim.Adam = shard_optimizer_wrapper(optim.Adam)
+    utils.AverageMeter.update = metric_wrapper(world_size)(utils.AverageMeter.update)
+    base_model_wrapper.BaseModelWrapper = model_wrapper(rank, log_name, start_time)(base_model_wrapper.BaseModelWrapper)
+    log.Result = result_wrapper(rank)(log.Result)
     ignore_stdout(rank)
