@@ -2,8 +2,8 @@ from torch import nn
 import torch.nn.functional as F
 
 
-def conv1x1(in_channels, out_channels, stride=1):
-    return nn.Conv2d(in_channels, out_channels, kernel_size=(1, 1), stride=stride, bias=False)
+def conv1x1(in_channels, out_channels, stride=1, groups=1):
+    return nn.Conv2d(in_channels, out_channels, kernel_size=(1, 1), stride=stride, bias=False, groups=groups)
 
 
 def conv3x3(in_channels, out_channels, stride=1, groups=1):
@@ -85,19 +85,21 @@ class PreActBottleNeck(BottleNeck):
 
 class ConvBNReLU(nn.Sequential):
     """This is made following torchvision works"""
-    def __init__(self, in_channel, out_channel, stride, conv_layer, norm_layer, act):
-        super(ConvBNReLU, self).__init__(conv_layer(in_channel, out_channel, stride=stride), norm_layer(out_channel), act())
+    def __init__(self, in_channel, out_channel, stride, conv_layer, norm_layer, act, groups=1):
+        super(ConvBNReLU, self).__init__(conv_layer(in_channel, out_channel, stride=stride, groups=groups), norm_layer(out_channel), act())
 
 
 class InvertedResidualBlock(nn.Module):
     def __init__(self, factor, in_channels, out_channels, stride, norm_layer, act=nn.ReLU6):
         super(InvertedResidualBlock, self).__init__()
         inter_channel = in_channels * factor
-        self.conv = nn.Sequential(
-            ConvBNReLU(in_channels, inter_channel, 1, conv1x1, norm_layer, act),
-            ConvBNReLU(inter_channel, inter_channel, stride, conv3x3, norm_layer, act),
-            conv1x1(inter_channel, out_channels, stride=1), norm_layer(out_channels)
-        )
+        layers = []
+        if factor != 1:
+            layers.append(ConvBNReLU(in_channels, inter_channel, 1, conv1x1, norm_layer, act))
+        layers.append(ConvBNReLU(inter_channel, inter_channel, stride, conv3x3, norm_layer, act, groups=inter_channel))
+        layers.append(conv1x1(inter_channel, out_channels, stride=1))
+        layers.append(norm_layer(out_channels))
+        self.conv = nn.Sequential(*layers)
 
         self.skip_connection = nn.Identity() if stride == 1 and in_channels == out_channels else lambda x: 0
 
@@ -114,6 +116,20 @@ def resnet_normal_init(model):
             nn.init.constant_(m.bias, 0)
         elif isinstance(m, nn.Linear):
             nn.init.xavier_uniform_(m.weight)
+
+
+def mobilenet_v2_init(model):
+    for m in model.modules():
+        if isinstance(m, nn.Conv2d):
+            nn.init.kaiming_normal_(m.weight, mode='fan_out')
+            if m.bias is not None:
+                nn.init.zeros_(m.bias)
+        elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
+            nn.init.ones_(m.weight)
+            nn.init.zeros_(m.bias)
+        elif isinstance(m, nn.Linear):
+            nn.init.normal_(m.weight, mean=0.0, std=0.01)
+            nn.init.zeros_(m.bias)
 
 
 def resnet_zero_init(model, zero_init_residual):
