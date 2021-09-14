@@ -107,6 +107,15 @@ class InvertedResidualBlock(nn.Module):
         return self.skip_connection(x) + self.conv(x)
 
 
+class SEUnit(nn.Sequential):
+    def __init__(self, in_channel, reduction_ratio):
+        super(SEUnit, self).__init__(
+            nn.AdaptiveAvgPool2d((1,1)),
+            conv1x1(in_channel, in_channel//reduction_ratio), nn.ReLU(),
+            conv1x1(in_channel//reduction_ratio, in_channel), nn.Sigmoid(),
+        )
+
+
 def resnet_normal_init(model):
     for m in model.modules():
         if isinstance(m, nn.Conv2d):
