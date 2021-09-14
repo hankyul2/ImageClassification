@@ -22,6 +22,9 @@ model_urls = {
     'wide_resnet50_2': 'https://download.pytorch.org/models/wide_resnet50_2-95faca4d.pth',
     'wide_resnet101_2': 'https://download.pytorch.org/models/wide_resnet101_2-32ee1156.pth',
 
+    # MobileNetV2
+    'mobilenet_v2': 'https://download.pytorch.org/models/mobilenet_v2-b0353104.pth',
+
     # ViT
     'vit_base_patch16_224': 'https://storage.googleapis.com/vit_models/imagenet21k/ViT-B_16.npz',
     'vit_base_patch32_224': 'https://storage.googleapis.com/vit_models/imagenet21k/ViT-B_32.npz',
@@ -41,8 +44,11 @@ def load_from_zoo(model, model_name, pretrained_path='pretrained_path'):
         state_dict = load_state_dict_from_url(url=model_urls[model_name],
                                               model_dir=os.path.join(pretrained_path, model_name),
                                               progress=True, map_location='cpu')
-        state_dict.pop('fc.weight')
-        state_dict.pop('fc.bias')
+        state_dict.pop('fc.weight', None)
+        state_dict.pop('fc.bias', None)
+        state_dict.pop('classifier.weight', None)
+        state_dict.pop('classifier.bias', None)
+
         model.load_state_dict(state_dict, strict=False)
     elif model_urls[model_name].endswith('npz'):
         npz = load_npz_from_url(url=model_urls[model_name],

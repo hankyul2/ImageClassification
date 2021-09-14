@@ -2,7 +2,8 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
-from src.model.layers.conv_block import InvertedResidualBlock, conv1x1, conv3x3, ConvBNReLU
+from src.model.layers.conv_block import InvertedResidualBlock, conv1x1, conv3x3, ConvBNReLU, mobilenet_v2_init
+from src.utils import load_from_zoo
 
 
 class MobileNetV2(nn.Module):
@@ -50,5 +51,14 @@ class MobileNetV2(nn.Module):
         return self.fc(torch.flatten(self.avg_pool(self.features(x)), 1))
 
 
-def get_mobile_net_v2():
-    pass
+def get_mobilenet_v2(model_name:str, nclass=100, pretrained=True, **kwargs) -> nn.Module:
+    """Get mobilenet_v2 only support 1 model"""
+    model = MobileNetV2(nclass)
+
+    mobilenet_v2_init(model)
+
+    if pretrained:
+        load_from_zoo(model, model_name)
+
+    return model
+
