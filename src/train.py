@@ -22,8 +22,8 @@ class ModelWrapper(BaseModelWrapper):
 class MyOpt:
     def __init__(self, model, lr, niter, weight_decay=0.0005, momentum=0.95):
         self.optimizer = SGD([
-            {'params': [param for name, param in model.named_parameters() if 'fc' in name], 'factor': 1},
-            {'params': [param for name, param in model.named_parameters() if 'fc' not in name], 'factor': 0.1}
+            {'params': list(set(param for name, param in model.named_parameters() if 'fc' in name)), 'factor': 1},
+            {'params': list(set(param for name, param in model.named_parameters() if 'fc' not in name)), 'factor': 0.1}
         ], lr=lr, momentum=momentum, weight_decay=weight_decay)
         self.scheduler = CosineLR(self.optimizer, niter, warmup=500, lr=lr)
 

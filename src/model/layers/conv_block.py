@@ -2,8 +2,8 @@ from torch import nn
 import torch.nn.functional as F
 
 
-def conv1x1(in_channels, out_channels, stride=1, groups=1):
-    return nn.Conv2d(in_channels, out_channels, kernel_size=(1, 1), stride=stride, bias=False, groups=groups)
+def conv1x1(in_channels, out_channels, stride=1, groups=1, bias=False):
+    return nn.Conv2d(in_channels, out_channels, kernel_size=(1, 1), stride=stride, bias=bias, groups=groups)
 
 
 def conv3x3(in_channels, out_channels, stride=1, groups=1):
@@ -113,11 +113,11 @@ class SEUnit(nn.Module):
     def __init__(self, in_channel, reduction_ratio=16):
         super(SEUnit, self).__init__()
         self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
-        self.w_1 = conv1x1(in_channel, in_channel // reduction_ratio)
-        self.w_2 = conv1x1(in_channel // reduction_ratio, in_channel)
+        self.fc1 = conv1x1(in_channel, in_channel // reduction_ratio, bias=True)
+        self.fc2 = conv1x1(in_channel // reduction_ratio, in_channel, bias=True)
 
     def forward(self, x):
-        return x * F.sigmoid(self.w_2(F.relu(self.w_1(self.avg_pool(x)))))
+        return x * F.sigmoid(self.fc2(F.relu(self.fc1(self.avg_pool(x)))))
 
 
 class SEBasicBlock(BasicBlock):

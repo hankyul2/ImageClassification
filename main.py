@@ -49,7 +49,7 @@ def init_seed(random_seed):
 def init_cli_arg(args):
     args.log_name = get_log_name(args)
     args.start_time = datetime.datetime.now().strftime('%Y-%m-%d/%H-%M-%S')
-    args.gpu_id_list = list(map(int, args.gpu_id.split(',')))
+    args.gpu_id_list = list(map(lambda x: -1 if x == '' else int(x), args.gpu_id.split(',')))
     args.world_size = max(1, len(args.gpu_id_list))
     args.rank = 0
     args.total_batch_size = args.batch_size * args.world_size
