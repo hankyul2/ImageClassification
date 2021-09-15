@@ -14,7 +14,16 @@ from src.utils import load_from_zoo
 class SeResNet(ResNet):
     def __init__(self, *args, **kwargs):
         super(SeResNet, self).__init__(*args, **kwargs)
-        self.layer0 = nn.Sequential(OrderedDict([('conv1', self.conv1), ('bn1', self.bn1), ('relu1', self.relu)]))
+        self.layer0 = nn.Sequential(OrderedDict([('conv1', self.conv1), ('bn1', self.bn1), ('relu1', self.relu), ('maxpool', self.maxpool)]))
+        self.layers.insert(0, self.layer0)
+        del self.conv1
+        del self.bn1
+        del self.relu
+
+    def features(self, x):
+        for layer in self.layers:
+            x = layer(x)
+        return x
 
 
 def get_seresnet(model_name: str, nclass=1000, pretrained=False, dataset=None, **kwargs) -> nn.Module:
