@@ -22,7 +22,8 @@ def ddp_wrapper(rank):
     def middle_wrapper(fn):
         def wrapper(*args, **kwargs):
             out = fn(*args, **kwargs)
-            out = DDP(out, device_ids=[rank], find_unused_parameters=True)
+            out = DDP(out, device_ids=[rank])
+            # out = DDP(out, device_ids=[rank], find_unused_parameters=True)
             return out
 
         return wrapper

@@ -3,6 +3,7 @@ from torch import nn
 from torch.optim import SGD
 import torch.optim.lr_scheduler as LR
 
+from src.lr_schedulers import CosineLR
 from src.model.models import get_model
 from src.base_model_wrapper import BaseModelWrapper
 from src.cifar import get_cifar, convert_to_dataloader
@@ -19,21 +20,16 @@ class ModelWrapper(BaseModelWrapper):
 
 
 class MyOpt:
-    def __init__(self, model, lr, nbatch, weight_decay=0.0005, momentum=0.95):
+    def __init__(self, model, lr, niter, weight_decay=0.0005, momentum=0.95):
         self.optimizer = SGD([
             {'params': [param for name, param in model.named_parameters() if 'fc' in name], 'lr': lr},
             {'params': [param for name, param in model.named_parameters() if 'fc' not in name], 'lr': lr/10}
         ], lr=lr, momentum=momentum, weight_decay=weight_decay)
-        self.scheduler = LR.MultiStepLR(self.optimizer, milestones=[17, 33], gamma=0.1)
-        self.nbatch = nbatch
-        self.step_ = 0
+        self.scheduler = CosineLR(self.optimizer, niter, warmup=500, lr=lr)
 
     def step(self):
         self.optimizer.step()
-        self.step_ += 1
-        if self.step_ % self.nbatch == 0:
-            self.scheduler.step()
-            self.step_ = 0
+        self.scheduler.step()
 
     def zero_grad(self):
         self.optimizer.zero_grad()
@@ -53,7 +49,7 @@ def run(args):
 
     # step 3. prepare training tool
     criterion = nn.CrossEntropyLoss()
-    optimizer = MyOpt(model=model, nbatch=len(train_dl), lr=args.lr)
+    optimizer = MyOpt(model=model, niter=len(train_dl)*args.nepoch, lr=args.lr)
 
     # step 4. train
     model = ModelWrapper(log_name=args.log_name, start_time=args.start_time, model=model, device=device, optimizer=optimizer,
