@@ -29,7 +29,7 @@ parser.add_argument('-s', '--img_size', type=int, default=(224, 224), nargs='+',
 parser.add_argument('-b', '--batch_size', type=int, default=32, help='Enter batch size for train step')
 parser.add_argument('-w', '--num_workers', type=int, default=4, help='Enter the number of workers per dataloader')
 parser.add_argument('-l', '--lr', type=float, default=3e-2, help='Enter learning rate')
-parser.add_argument('-e', '--nepoch', type=int, default=50, help='Enter the number of epoch')
+parser.add_argument('-e', '--nepoch', type=int, default=100, help='Enter the number of epoch')
 parser.add_argument('-i', '--iter', type=int, default=1, help='Enter the number of iteration you want to run')
 parser.add_argument('--data_path', type=str, default='data', help='Enter default data store path')
 parser.add_argument('--pretrained', action='store_true', help='If specify, it will use pretrained model')

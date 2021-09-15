@@ -18,7 +18,7 @@ class CosineLR:
         self.step_ += 1
         lr = self.get_lr()
         for param in self.optimizer.param_groups:
-            param['lr'] = lr
+            param['lr'] = param['factor'] * lr
 
     def get_lr(self, step=None):
         step = step if step else self.step_
