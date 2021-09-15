@@ -30,6 +30,8 @@ batch 사이즈는 RTX3090(memory 24GB) 기준으로 single gpu에서 모델을 
 | ResNext101              |       |              |             |
 | Wide ResNet50           |       |              |             |
 | Wide ResNet101          |       |              |             |
+| SeResNet50              |       | 7.2G(+0.7G)  |             |
+| SeResNet101             |       | 9.8G(+1.3G)  |             |
 | EfficientNet_b0         |       |              |             |
 | EfficientNet_b1         |       |              |             |
 | ViT base 32x32          | 3G    | 4G           | 8G          |
