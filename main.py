@@ -9,6 +9,7 @@ import random
 import torch
 
 from src.distributed.multi_gpus import run_multi_gpus
+from src.grid_search import grid_search
 from src.utils import download_dataset
 from src.log import get_log_name
 
@@ -16,7 +17,7 @@ parser = argparse.ArgumentParser(description='Domain Adaptation')
 parser.add_argument('-g', '--gpu_id', type=str, default='', help='Enter which gpu you want to use')
 parser.add_argument('-r', '--random_seed', type=int, default=None, help='Enter random seed')
 parser.add_argument('-m', '--model_name', type=str.lower, default='', choices=[
-    'resnet18', 'resent34', 'resnet50', 'resnet101', 'resnet152', 'resnext50_32x4d', 'wide_resnet50_2',
+    'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152', 'resnext50_32x4d', 'wide_resnet50_2',
     'mobilenet_v2',
     'seresnet18', 'seresnet34', 'seresnet50', 'seresnet101', 'seresnet152', 'seresnext50_32x4d',
     'vit_base_patch16_224', 'vit_base_patch32_224', 'vit_large_patch16_224', 'vit_large_patch32_224',
@@ -36,6 +37,7 @@ parser.add_argument('--pretrained', action='store_true', help='If specify, it wi
 parser.add_argument('--download_dataset', action='store_true',
                     help='If specify, it will download cifar10/100')
 parser.add_argument('--update_best_result', action='store_true', help='If specify, it will update best result log')
+parser.add_argument('--grid_search', action='store_true', help='If specify, it will find best hyper parameter combination')
 
 
 def init_seed(random_seed):
@@ -92,7 +94,9 @@ if __name__ == '__main__':
     init(args)
 
     for iter in range(args.iter):
-        if args.is_multi_gpu:
+        if args.grid_search:
+            grid_search(main, args)
+        elif args.is_multi_gpu:
             run_multi_gpus(main, args)
         else:
             main(args)
