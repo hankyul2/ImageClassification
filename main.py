@@ -9,7 +9,7 @@ import random
 import torch
 
 from src.distributed.multi_gpus import run_multi_gpus
-from src.grid_search import grid_search
+from src.experiment.grid_search import grid_search
 from src.utils import download_dataset
 from src.log import get_log_name
 
