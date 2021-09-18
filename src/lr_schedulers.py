@@ -28,6 +28,13 @@ class CosineLR:
             cosine_y = (1 + math.cos(math.pi * (step - self.warmup) / (self.niter - self.warmup))) / 2
             return compute_linear(x=cosine_y, a=self.lr, b=0)
 
+    def state_dict(self):
+        return {'lr': self.lr, 'step_': self.step_, 'start_lr': self.start_lr,
+                'warmup': self.warmup,'niter': self.niter}
+
+    def load_state_dict(self, state_dict):
+        self.__dict__.update(state_dict)
+
 
 class PowerLR:
     def __init__(self, optimizer, niter=10000, warmup=500, lr=0.03, start_lr=6e-3):
