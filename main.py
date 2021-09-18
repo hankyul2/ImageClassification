@@ -9,7 +9,6 @@ import random
 import torch
 
 from src.distributed.multi_gpus import run_multi_gpus
-from src.grid_search import grid_search
 from src.utils import download_dataset
 from src.log import get_log_name
 
@@ -94,10 +93,5 @@ if __name__ == '__main__':
     init(args)
 
     for iter in range(args.iter):
-        if args.grid_search:
-            grid_search(main, args)
-        elif args.is_multi_gpu:
-            run_multi_gpus(main, args)
-        else:
-            main(args)
+        main(args)
         init_cli_arg(args)

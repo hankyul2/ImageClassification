@@ -8,7 +8,7 @@ from src.model.senet import get_seresnet
 from src.model.vit import get_vit
 
 
-def get_model(model_name: str, nclass: int, device: torch.device, **kwargs):
+def get_model(model_name: str, nclass: int, **kwargs):
     if model_name.startswith('resnet32'):
         model = get_resnet32(model_name, nclass, **kwargs)
     elif model_name.startswith('resnet'):
@@ -22,4 +22,4 @@ def get_model(model_name: str, nclass: int, device: torch.device, **kwargs):
     elif model_name.startswith('seresnet'):
         model = get_seresnet(model_name, nclass, **kwargs)
 
-    return model.to(device)
+    return model
