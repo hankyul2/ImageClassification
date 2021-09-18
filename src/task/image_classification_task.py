@@ -24,12 +24,10 @@ class ImageClassificationTask(pl.LightningModule):
         y_hat = self(x)
         loss = self.criterion(y_hat, y)
         acc1, acc5 = accuracy(y_hat, y, topk=(1, 5))
-        self.log('train_acc1', acc1, logger=True, on_step=True, on_epoch=True, prog_bar=True, sync_dist=True)
-        self.log('train_acc5', acc5, logger=True, on_step=True, on_epoch=True, prog_bar=True, sync_dist=True)
+        self.log('train_loss', loss, logger=True, sync_dist=True)
+        self.log('train_acc1', acc1, logger=True, on_epoch=True, prog_bar=True, sync_dist=True)
+        self.log('train_acc5', acc5, logger=True, on_epoch=True, prog_bar=True, sync_dist=True)
         return loss
-
-    def training_step_end(self, batch_parts):
-        return batch_parts.mean()
 
     def shared_eval_step(self, batch, batch_idx):
         x, y = batch
@@ -40,13 +38,13 @@ class ImageClassificationTask(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         loss, acc1, acc5 = self.shared_eval_step(batch, batch_idx)
-        self.log_dict({'val_loss':loss, 'val_acc1':acc1, 'val_acc5':acc5}, logger=True,
-                      on_step=True, on_epoch=True, prog_bar=True, sync_dist=True)
+        self.log_dict({'val_loss':loss, 'val_acc1':acc1, 'val_acc5':acc5}, logger=True, on_epoch=True, prog_bar=True, sync_dist=True)
+        return loss
 
     def test_step(self, batch, batch_idx):
         loss, acc1, acc5 = self.shared_eval_step(batch, batch_idx)
-        self.log_dict({'test_loss': loss, 'test_acc1': acc1, 'test_acc5': acc5}, logger=True,
-                      on_step=True, on_epoch=True, prog_bar=True, sync_dist=True)
+        self.log_dict({'test_loss': loss, 'test_acc1': acc1, 'test_acc5': acc5}, logger=True, on_epoch=True, prog_bar=True, sync_dist=True)
+        return loss
 
     def predict_step(self, batch, batch_idx, dataloader_idx=None):
         pass

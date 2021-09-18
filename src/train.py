@@ -19,8 +19,8 @@ def run(args):
     task = ImageClassificationTask(model, niter=len(train_dl)*args.nepoch, lr=args.lr)
 
     # step 4. train
-    trainer = Trainer(gpus=8, accelerator='ddp', max_epochs=args.nepoch)
+    trainer = Trainer(gpus=4, accelerator='ddp', max_epochs=args.nepoch)
     trainer.fit(task, train_dl, valid_dl)
 
     # step 5. evaluate
-    trainer.test(test_dl)
+    trainer.test(test_dataloaders=test_dl)
