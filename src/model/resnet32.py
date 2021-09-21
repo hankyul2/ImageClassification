@@ -1,14 +1,37 @@
 from typing import Type, Union
+
+from pytorch_lightning import LightningModule
 from torch import nn
 
-from src.model.layers.conv_block import BasicBlock, BottleNeck, conv1x1, resnet_normal_init, resnet_zero_init
+from src.model.layers.conv_block import BasicBlock, BottleNeck, conv1x1, resnet_normal_init, resnet_zero_init, \
+    PreActBasicBlock, PreActBottleNeck, InvertedResidualBlock, SEBasicBlock, SEBottleNeck
 
 
-class ResNet32(nn.Module):
-    def __init__(self, block: Type[Union[BasicBlock, BottleNeck]], nblock: list, nclass: int = 1000,
-                 channels: list = [16, 32, 64], norm_layer: nn.Module = nn.BatchNorm2d, groups=1,
-                 base_width=64):
+class ResNet32(LightningModule):
+    def __init__(self,
+                 block: Type[Union[BasicBlock, BottleNeck,
+                                   PreActBasicBlock, PreActBottleNeck,
+                                   InvertedResidualBlock,
+                                   SEBasicBlock, SEBottleNeck]] = BasicBlock,
+                 block_list: tuple = (3, 3, 3),
+                 class_num: int = 1000,
+                 channels: tuple = (16, 32, 64),
+                 # norm_layer: nn.Module = nn.BatchNorm2d,
+                 groups: int = 1,
+                 base_width: int = 64):
+        """
+        ResNet32 Module Definition
+
+        :param block: resnet architecture block
+        :param block_list: number of block list
+        :param class_num: number of class
+        :param channels: number of channel for each block
+        :param norm_layer: normalize layer
+        :param groups: group for bottleNeck architecture
+        :param base_width: base width for bottleNeck architecture
+        """
         super(ResNet32, self).__init__()
+        norm_layer = nn.BatchNorm2d
         self.groups = groups
         self.base_width = base_width
         self.norm_layer = norm_layer
@@ -19,9 +42,9 @@ class ResNet32(nn.Module):
         self.relu = nn.ReLU(inplace=False)
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.flatten = nn.Flatten()
-        self.fc = nn.Linear(channels[-1] * block.factor, nclass)
+        self.fc = nn.Linear(channels[-1] * block.factor, class_num)
 
-        self.layers = [self.make_layer(block=block, nblock=nblock[i], channels=channels[i]) for i in range(len(nblock))]
+        self.layers = [self.make_layer(block=block, nblock=block_list[i], channels=channels[i]) for i in range(len(block_list))]
         self.register_layer()
 
     def features(self, x):
@@ -40,7 +63,6 @@ class ResNet32(nn.Module):
 
     def forward(self, *args):
         return self.forward_impl(*args) if self.training else self.predict(*args)
-
 
     def register_layer(self):
         for i, layer in enumerate(self.layers):
@@ -69,9 +91,9 @@ class ResNet32(nn.Module):
 
 def get_resnet32(model_name: str, nclass=1000, zero_init_residual=False, dataset=None, **kwargs) -> nn.Module:
     if model_name == 'resnet32_20':
-        model = ResNet32(block=BasicBlock, nblock=[3, 3, 3], nclass=nclass)
+        model = ResNet32(block=BasicBlock, block_list=[3, 3, 3], class_num=nclass)
     elif model_name == 'resnet32_110':
-        model = ResNet32(block=BasicBlock, nblock=[18, 18, 18], nclass=nclass)
+        model = ResNet32(block=BasicBlock, block_list=[18, 18, 18], class_num=nclass)
 
     resnet_normal_init(model)
     resnet_zero_init(model, zero_init_residual)

@@ -40,9 +40,7 @@ class PowerLR(_LRScheduler):
             if step < self.warmup:
                 lrs.append(compute_linear(x=step / self.warmup, a=lr - self.start_lr, b=self.start_lr))
             else:
-                lrs.append(
-                    compute_linear(x=(1 + 10 * (step - self.warmup) / (self.niter - self.warmup)) ** (-0.75), a=lr,
-                                   b=0))
+                lrs.append(compute_linear(x=(1 + 10 * (step - self.warmup) / (self.niter - self.warmup)) ** (-0.75), a=lr, b=0))
         return lrs
 
 

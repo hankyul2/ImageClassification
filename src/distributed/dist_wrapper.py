@@ -5,9 +5,9 @@ import torch
 import torch.distributed as dist
 from torch.distributed.optim import ZeroRedundancyOptimizer
 from torch.nn.parallel import DistributedDataParallel as DDP
-from src import base_model_wrapper, log, cifar, utils
+from src import base_model_wrapper, log, utils
+from src.dataset import base_data_module
 from src.model import models
-from torch import optim
 
 
 def dataloader_wrapper(fn):
@@ -98,7 +98,7 @@ def ignore_stdout(rank):
 
 
 def apply_dist(rank, world_size, log_name, start_time):
-    cifar.convert_to_dataloader = dataloader_wrapper(cifar.convert_to_dataloader)
+    base_data_module.convert_to_dataloader = dataloader_wrapper(base_data_module.convert_to_dataloader)
     models.get_model = ddp_wrapper(rank)(models.get_model)
     # optim.SGD = shard_optimizer_wrapper(optim.SGD)
     # optim.Adam = shard_optimizer_wrapper(optim.Adam)

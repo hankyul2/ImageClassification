@@ -1,8 +1,8 @@
 from pytorch_lightning import Trainer
 
 from src.model.models import get_model
-from src.cifar import get_cifar, convert_to_dataloader
-from src.task.image_classification_task import ImageClassificationTask
+from src.dataset.base_data_module import get_cifar, convert_to_dataloader
+from src.task.base_vision_system import BaseVisionSystem
 
 
 def run(args):
@@ -16,10 +16,10 @@ def run(args):
     model = get_model(args.model_name, nclass=len(train_ds.dataset.classes), pretrained=args.pretrained, dropout=args.dropout)
 
     # step 3. load ml system (loss, optimizer, lr scheduler)
-    task = ImageClassificationTask(model, nbatch=len(train_dl), nepoch=args.nepoch, lr=args.lr)
+    task = BaseVisionSystem(model, batch_step=len(train_dl), max_epoch=args.max_epoch, lr=args.lr)
 
     # step 4. train
-    trainer = Trainer(gpus=8, accelerator='ddp', max_epochs=args.nepoch)
+    trainer = Trainer(gpus=8, accelerator='ddp', max_epochs=args.max_epoch)
     trainer.fit(task, train_dl, valid_dl)
 
     # step 5. evaluate

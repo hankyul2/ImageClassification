@@ -6,14 +6,31 @@ from src.lr_schedulers import CosineLR
 from src.utils import accuracy
 
 
-class ImageClassificationTask(pl.LightningModule):
-    def __init__(self, model, nbatch, nepoch, lr, momentum=0.95, weight_decay=0.0005):
-        super(ImageClassificationTask, self).__init__()
+class BaseVisionSystem(pl.LightningModule):
+    def __init__(self,
+                 model: pl.LightningModule,
+                 batch_step: int,
+                 max_epoch: int = 100,
+                 lr: float = 3e-2,
+                 momentum: float = 0.95,
+                 weight_decay: float = 0.0005):
+        """
+        Base Vision System
+
+        :param model: backbone model
+        :param batch_step: number of batch step in one epoch
+        :param max_epoch: number of epoch
+        :param lr: learning rate
+        :param momentum: optimizer momentum
+        :param weight_decay: optimizer weight decay
+        """
+        super(BaseVisionSystem, self).__init__()
+        # self.save_hyperparameters()
         self.model = model
         self.criterion = nn.CrossEntropyLoss()
         self.lr = lr
-        self.nbatch = nbatch
-        self.nepoch = nepoch
+        self.batch_step = batch_step
+        self.max_epoch = max_epoch
         self.momentum = momentum
         self.weight_decay = weight_decay
 
@@ -47,16 +64,13 @@ class ImageClassificationTask(pl.LightningModule):
         self.log_dict({'test_loss': loss, 'test_acc1': acc1, 'test_acc5': acc5}, logger=True, on_epoch=True, prog_bar=True, sync_dist=True)
         return loss
 
-    def predict_step(self, batch, batch_idx, dataloader_idx=None):
-        pass
-
     def configure_optimizers(self):
         optimizer = SGD([
             {'params': list(set(param for name, param in self.model.named_parameters() if 'fc' in name)), 'lr': self.lr},
             {'params': list(set(param for name, param in self.model.named_parameters() if 'fc' not in name)), 'lr': self.lr * 0.1},
         ], momentum=self.momentum, weight_decay=self.weight_decay)
 
-        lr_scheduler = {'scheduler': CosineLR(optimizer, niter=self.nepoch * self.nbatch, warmup=self.nbatch), 'interval': 'step'}
+        lr_scheduler = {'scheduler': CosineLR(optimizer, niter=self.max_epoch * self.batch_step, warmup=self.batch_step), 'interval': 'step'}
         return {'optimizer': optimizer, 'scheduler': lr_scheduler}
 
 
