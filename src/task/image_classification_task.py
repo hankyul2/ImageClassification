@@ -7,19 +7,20 @@ from src.utils import accuracy
 
 
 class ImageClassificationTask(pl.LightningModule):
-    def __init__(self, model, niter, lr, momentum=0.95, weight_decay=0.0005):
+    def __init__(self, model, nbatch, nepoch, lr, momentum=0.95, weight_decay=0.0005):
         super(ImageClassificationTask, self).__init__()
         self.model = model
         self.criterion = nn.CrossEntropyLoss()
         self.lr = lr
-        self.niter = niter
+        self.nbatch = nbatch
+        self.nepoch = nepoch
         self.momentum = momentum
         self.weight_decay = weight_decay
 
     def forward(self, x):
         return self.model(x)
 
-    def training_step(self, batch, batch_idx, optimizer_idx):
+    def training_step(self, batch, batch_idx, optimizer_idx=None):
         x, y = batch
         y_hat = self(x)
         loss = self.criterion(y_hat, y)
@@ -50,12 +51,12 @@ class ImageClassificationTask(pl.LightningModule):
         pass
 
     def configure_optimizers(self):
-        optimizer1 = SGD(list(set(param for name, param in self.model.named_parameters() if 'fc' in name)),
-                         lr=self.lr, momentum=self.momentum, weight_decay=self.weight_decay)
-        optimizer2 = SGD(list(set(param for name, param in self.model.named_parameters() if 'fc' not in name)),
-                         lr=self.lr*0.1, momentum=self.momentum, weight_decay=self.weight_decay)
-        lr_scheduler1 = {'scheduler': CosineLR(optimizer1, niter=self.niter, lr=self.lr), 'interval': 'step'}
-        lr_scheduler2 = {'scheduler': CosineLR(optimizer2, niter=self.niter, lr=self.lr*0.1), 'interval': 'step'}
-        return [optimizer1, optimizer2], [lr_scheduler1, lr_scheduler2]
+        optimizer = SGD([
+            {'params': list(set(param for name, param in self.model.named_parameters() if 'fc' in name)), 'lr': self.lr},
+            {'params': list(set(param for name, param in self.model.named_parameters() if 'fc' not in name)), 'lr': self.lr * 0.1},
+        ], momentum=self.momentum, weight_decay=self.weight_decay)
+
+        lr_scheduler = {'scheduler': CosineLR(optimizer, niter=self.nepoch * self.nbatch, warmup=self.nbatch), 'interval': 'step'}
+        return {'optimizer': optimizer, 'scheduler': lr_scheduler}
 
 

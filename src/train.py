@@ -16,10 +16,10 @@ def run(args):
     model = get_model(args.model_name, nclass=len(train_ds.dataset.classes), pretrained=args.pretrained, dropout=args.dropout)
 
     # step 3. load ml system (loss, optimizer, lr scheduler)
-    task = ImageClassificationTask(model, niter=len(train_dl)*args.nepoch, lr=args.lr)
+    task = ImageClassificationTask(model, nbatch=len(train_dl), nepoch=args.nepoch, lr=args.lr)
 
     # step 4. train
-    trainer = Trainer(gpus=4, accelerator='ddp', max_epochs=args.nepoch)
+    trainer = Trainer(gpus=8, accelerator='ddp', max_epochs=args.nepoch)
     trainer.fit(task, train_dl, valid_dl)
 
     # step 5. evaluate
