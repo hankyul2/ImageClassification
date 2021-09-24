@@ -18,5 +18,4 @@ from src.task.base_vision_system import BaseVisionSystem
 
 
 if __name__ == '__main__':
-    print(pl.__version__)
     LightningCLI(BaseVisionSystem, BaseDataModule, subclass_mode_data=True, subclass_mode_model=True)
