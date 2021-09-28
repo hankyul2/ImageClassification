@@ -1,0 +1,10 @@
+class_path: src.dataset.cifar.CIFAR100_DataModule
+init_args:
+  dataset_name: cifar100
+  batch_size: 64
+  num_workers: 4
+  size:
+  - 224
+  - 224
+  data_root: data
+  valid_ratio: 0.1

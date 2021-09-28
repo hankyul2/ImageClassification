@@ -1,0 +1,3 @@
+class_path: src.lr_schedulers.CosineLR
+init_args:
+  warmup_epoch: 1

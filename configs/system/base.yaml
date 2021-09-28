@@ -1,6 +1,4 @@
-model:
-  class_path: src.task.base_vision_system.BaseVisionSystem
-  init_args:
-    model:
-      class_path: src.model.resnet32.ResNet32
-    batch_step: 40
+class_path: src.system.base_vision_system.BaseVisionSystem
+init_args:
+  model:
+    class_path: src.model.resnet32.ResNet32

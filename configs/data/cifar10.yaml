@@ -1,11 +1,10 @@
-data:
-  class_path: src.dataset.cifar.CIFAR10_DataModule
-  init_args:
-    dataset_name: cifar10
-    batch_size: 64
-    num_workers: 4
-    size:
-    - 224
-    - 224
-    data_root: data
-    valid_ratio: 0.1
+class_path: src.dataset.cifar.CIFAR10_DataModule
+init_args:
+  dataset_name: cifar10
+  batch_size: 64
+  num_workers: 4
+  size:
+  - 224
+  - 224
+  data_root: data
+  valid_ratio: 0.1
