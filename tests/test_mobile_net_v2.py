@@ -1,7 +1,7 @@
 import torch
 
-from src.model.layers.conv_block import InvertedResidualBlock
-from src.model.mobile_net_v2 import MobileNetV2
+from src.backbone.layers.conv_block import InvertedResidualBlock
+from src.backbone.mobile_net_v2 import MobileNetV2
 
 
 def test_mobile_net_v2():

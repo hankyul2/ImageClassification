@@ -8,9 +8,10 @@ def compute_linear(x, a, b):
 
 
 class CosineLR(_LRScheduler):
-    def __init__(self, optimizer, niter=10000, warmup=500, start_lr=6e-3, last_epoch=-1, verbose=False):
-        self.niter = niter
-        self.warmup = warmup
+    def __init__(self, optimizer, num_step: int, max_epochs: int, warmup_epoch: int = 1,
+                 start_lr: float = 6e-3, last_epoch: int = -1, verbose: bool = False):
+        self.niter = max_epochs * num_step
+        self.warmup = num_step * warmup_epoch
         self.start_lr = start_lr
         super(CosineLR, self).__init__(optimizer, last_epoch=last_epoch, verbose=verbose)
 
@@ -27,10 +28,11 @@ class CosineLR(_LRScheduler):
 
 
 class PowerLR(_LRScheduler):
-    def __init__(self, optimizer, niter=10000, warmup=500, start_lr=6e-3, last_epoch=-1, verbose=False):
-        self.warmup = warmup
+    def __init__(self, optimizer, num_step: int, max_epochs: int, warmup_epoch: int = 1,
+                 start_lr: float = 6e-3, last_epoch: int = -1, verbose: bool = False):
+        self.niter = max_epochs * num_step
+        self.warmup = num_step * warmup_epoch
         self.start_lr = start_lr
-        self.niter = niter
         super(PowerLR, self).__init__(optimizer, last_epoch=last_epoch, verbose=verbose)
 
     def get_lr(self, step=None):
@@ -40,15 +42,18 @@ class PowerLR(_LRScheduler):
             if step < self.warmup:
                 lrs.append(compute_linear(x=step / self.warmup, a=lr - self.start_lr, b=self.start_lr))
             else:
-                lrs.append(compute_linear(x=(1 + 10 * (step - self.warmup) / (self.niter - self.warmup)) ** (-0.75), a=lr, b=0))
+                lrs.append(
+                    compute_linear(x=(1 + 10 * (step - self.warmup) / (self.niter - self.warmup)) ** (-0.75), a=lr,
+                                   b=0))
         return lrs
 
 
 class FractionLR(_LRScheduler):
-    def __init__(self, optimizer, warmup=4000, d_model=512, factor=2, last_epoch=-1, verbose=False):
+    def __init__(self, optimizer, num_step: int, warmup_epoch: int = 1, d_model: int = 512,
+                 factor: int = 2, last_epoch: int = -1, verbose: bool = False):
         self.d_model = d_model
         self.factor = factor
-        self.warmup = warmup
+        self.warmup = num_step * warmup_epoch
         super(FractionLR, self).__init__(optimizer, last_epoch=last_epoch, verbose=verbose)
 
     def get_lr(self, step=None):

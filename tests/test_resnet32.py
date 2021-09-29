@@ -1,6 +1,6 @@
 import torch
 
-from src.model.resnet32 import get_resnet32
+from src.backbone.resnet32 import get_resnet32
 
 
 def test_get_resnet32():

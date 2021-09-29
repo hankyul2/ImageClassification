@@ -1,6 +1,6 @@
 import torch
 
-from src.model.senet import get_seresnet
+from src.backbone.senet import get_seresnet
 
 
 def test_get_seresnet():

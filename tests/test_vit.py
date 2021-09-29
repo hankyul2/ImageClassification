@@ -1,7 +1,7 @@
 import torch
 import copy
 
-from src.model.vit import MultiHeadAttention, FeedForward, Encoder, EncoderLayer, \
+from src.backbone.vit import MultiHeadAttention, FeedForward, Encoder, EncoderLayer, \
     SublayerConnection, build_vit, get_vit, Embedding
 
 

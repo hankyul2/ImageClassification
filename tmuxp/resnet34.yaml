@@ -1,0 +1,5 @@
+session_name: ic_resnet34
+windows:
+  - window_name: cifar10
+    panes:
+      - python3 main.py fit --config configs/default_exp_setup.yaml --fast_dev_run=True

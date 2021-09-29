@@ -112,6 +112,7 @@ class Encoder(nn.Module):
         super(Encoder, self).__init__()
         self.layers = clone(encoder, n)
         self.norm = LayerNorm(d_model)
+        self.d_model = d_model
 
     def forward(self, x):
         for layer in self.layers:
@@ -154,30 +155,19 @@ def get_dim(weight):
 
 
 class VIT(nn.Module):
-    def __init__(self, embed, encoder, pre_logits, fc):
+    def __init__(self, embed, encoder, pre_logits):
         super(VIT, self).__init__()
         self.embed = embed
         self.encoder = encoder
         self.pre_logits = pre_logits
-        self.fc = fc
+        self.out_channels = encoder.d_model
 
     def encode(self, x):
         return self.encoder(self.embed(x))
 
-    def features(self, x):
+    def forward(self, x):
         x = self.encode(x)
         return self.pre_logits(x[:, 0])
-
-    def forward_impl(self, x):
-        x = self.features(x)
-        return self.fc(x)
-
-    def predict(self, x):
-        x = self.features(x)
-        return self.fc(x)
-
-    def forward(self, *args):
-        return self.forward_impl(*args) if self.training else self.predict(*args)
 
     def load_npz(self, npz):
         name_convertor = [
@@ -190,8 +180,6 @@ class VIT(nn.Module):
             ('\\.', '/')
         ]
         for name, param in self.named_parameters():
-            if 'fc' in name:
-                continue
             for pattern, sub in name_convertor:
                 name = re.sub(pattern, sub, name)
             if 'pos_embedding' in name:
@@ -201,17 +189,15 @@ class VIT(nn.Module):
 
 
 def build_vit(d_model=512, h=8, d_ff=2048, N=6, patch_size=(16, 16), img_size=(224, 224),
-              nclass=1000, dropout=0.1, in_channel=3, pre_logits=False):
+              dropout=0.1, in_channel=3, pre_logits=False):
     c = copy.deepcopy
     embed = Embedding(d_model=d_model, img_size=img_size, patch_size=patch_size, in_channel=in_channel, dropout=dropout)
     attn = MultiHeadAttention(d_model=d_model, h=h, dropout=dropout)
     ff = FeedForward(d_model=d_model, d_ff=d_ff, dropout=dropout)
     su = SublayerConnection(d_model=d_model)
     pre_logits = nn.Sequential(nn.Linear(d_model, d_model), nn.Tanh()) if pre_logits else nn.Identity()
-    fc = nn.Linear(d_model, nclass) if nclass else nn.Identity()
 
-    vit = VIT(embed=embed, encoder=Encoder(EncoderLayer(c(attn), c(ff), c(su)), d_model, N), pre_logits=pre_logits,
-              fc=fc)
+    vit = VIT(embed=embed, encoder=Encoder(EncoderLayer(c(attn), c(ff), c(su)), d_model, N), pre_logits=pre_logits)
 
     for name, param in vit.named_parameters():
         if param.dim() > 2:
@@ -224,7 +210,7 @@ def build_vit(d_model=512, h=8, d_ff=2048, N=6, patch_size=(16, 16), img_size=(2
     return vit
 
 
-def get_vit(model_name: str, nclass=1000, pretrained=False, pre_logits=False, dropout=0.1, **kwargs):
+def get_vit(model_name: str, pretrained=False, pre_logits=False, dropout=0.1):
     '''model_name_form: vit_{base,large}_patch{16,32}_{224,384}'''
     if 'vit_base' in model_name:
         d_model, h, d_ff, N = 768, 12, 3072, 12
@@ -242,7 +228,7 @@ def get_vit(model_name: str, nclass=1000, pretrained=False, pre_logits=False, dr
         img_size = (384, 384)
 
     vit = build_vit(patch_size=patch_size, img_size=img_size, d_model=d_model, h=h,
-                    d_ff=d_ff, N=N, nclass=nclass, pre_logits=pre_logits, dropout=dropout)
+                    d_ff=d_ff, N=N, pre_logits=pre_logits, dropout=dropout)
 
     if pretrained:
         load_from_zoo(vit, model_name)

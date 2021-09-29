@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-from src.model.layers.conv_block import InvertedResidualBlock
+from src.backbone.layers.conv_block import InvertedResidualBlock
 
 
 def test_inverted_residual_block_forward():

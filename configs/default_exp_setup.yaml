@@ -3,7 +3,7 @@ data:
   class_path: src.data.cifar.CIFAR10_DataModule
   init_args:
     dataset_name: cifar10
-    batch_size: 64
+    batch_size: 16
     num_workers: 4
     size:
     - 224
@@ -11,18 +11,13 @@ data:
     data_root: data
     valid_ratio: 0.1
 
-# 2. define model
+# 2. define model (define other backbone)
 model:
   class_path: src.system.base_vision_system.BaseVisionSystem
   init_args:
-    backbone:
-      class_path: src.model.resnet32.ResNet32
-      init_args:
-        class_num: 10
-        hello: nn.BatchNorm
-    in_features: 10
-    num_classes: 10
-
+    backbone_init:
+      model_name: "resnet18"
+      pretrained: true
     # 3. prepare train tools (optimizer, learning rate scheduler)
     optimizer_init:
       class_path: torch.optim.SGD
@@ -30,11 +25,12 @@ model:
         lr: 0.03
         momentum: 0.95
         weight_decay: 0.0005
+
     lr_scheduler_init:
       class_path: src.lr_schedulers.CosineLR
       init_args:
-        num_step: 400
-        max_epoch: 100
+        max_epochs: 0
+        num_step: 0
         warmup_epoch: 1
 
 # 4. train
@@ -42,13 +38,13 @@ seed_everything: null
 trainer:
   # 4-1. gpu devices
   accelerator: null
-  gpus: "4,"
+  gpus: "5,"
   amp_backend: native
 
   # 4-2. train setting
   check_val_every_n_epoch: 1
   val_check_interval: 1.0
-  max_epochs: null
+  max_epochs: 1
 
   # 4-3. logger & callbacks
   logger: true

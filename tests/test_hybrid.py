@@ -1,6 +1,6 @@
 import torch
 
-from src.model.hybrid import get_hybrid
+from src.backbone.hybrid import get_hybrid
 
 
 def test_get_hybrid():

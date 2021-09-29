@@ -15,12 +15,13 @@ class BaseDataModule(pl.LightningDataModule):
         """
         Base Data Module
 
-        :param dataset_name: Enter which dataset name
-        :param batch_size: Enter batch size
-        :param num_workers: Enter number of workers
-        :param size: Enter resized image
-        :param data_root: Enter root data folder name
-        :param valid_ratio: Enter valid dataset ratio
+        :arg
+            dataset_name: Enter which dataset name
+            batch_size: Enter batch size
+            num_workers: Enter number of workers
+            size: Enter resized image
+            data_root: Enter root data folder name
+            valid_ratio: Enter valid dataset ratio
         """
         super(BaseDataModule, self).__init__()
         self.dataset_name = dataset_name
@@ -29,6 +30,8 @@ class BaseDataModule(pl.LightningDataModule):
         self.size = size
         self.data_root = data_root
         self.valid_ratio = valid_ratio
+        self.num_classes = None
+        self.num_step = None
         self.mean = None
         self.std = None
         self.Dataset = None
@@ -38,6 +41,8 @@ class BaseDataModule(pl.LightningDataModule):
     def prepare_data(self) -> None:
         train = self.Dataset(root=self.data_root, train=True, download=True)
         test = self.Dataset(root=self.data_root, train=True, download=True)
+        self.num_classes = len(train.classes)
+        self.num_step = len(train) // self.batch_size
 
         print('-' * 50)
         print('* {} dataset class num: {}'.format(self.dataset_name, len(train.classes)))
@@ -47,23 +52,23 @@ class BaseDataModule(pl.LightningDataModule):
 
     def setup(self, stage: str = None):
         if stage in (None, 'fit'):
-            ds = self.Dataset(root=self.data_root, train=True, transform=transforms.ToTensor())
-            self.split_train_valid(ds)
+            ds = self.Dataset(root=self.data_root, train=True, transform=self.train_transform)
+            self.train_ds, self.valid_ds = self.split_train_valid(ds)
 
         elif stage in (None, 'test'):
-            self.test_ds = self.Dataset(root=self.data_root, train=False, transform=transforms.ToTensor())
+            self.test_ds = self.Dataset(root=self.data_root, train=False, transform=self.test_transform)
 
     def split_train_valid(self, ds):
         ds_len = len(ds)
         valid_ds_len = int(ds_len * self.valid_ratio)
         train_ds_len = ds_len - valid_ds_len
-        self.train_ds, self.valid_ds = random_split(ds, [train_ds_len, valid_ds_len])
+        return random_split(ds, [train_ds_len, valid_ds_len])
 
     def train_dataloader(self) -> TRAIN_DATALOADERS:
         return DataLoader(self.train_ds, batch_size=self.batch_size, shuffle=True, num_workers=self.num_workers)
 
     def val_dataloader(self) -> EVAL_DATALOADERS:
-        return DataLoader(self.valid_ds, batch_size=self.batch_size, shuffle=True, num_workers=self.num_workers)
+        return DataLoader(self.valid_ds, batch_size=self.batch_size, shuffle=False, num_workers=self.num_workers)
 
     def test_dataloader(self) -> EVAL_DATALOADERS:
-        return DataLoader(self.test_ds, batch_size=self.batch_size, shuffle=True, num_workers=self.num_workers)
+        return DataLoader(self.test_ds, batch_size=self.batch_size, shuffle=False, num_workers=self.num_workers)

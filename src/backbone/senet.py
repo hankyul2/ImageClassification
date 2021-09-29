@@ -6,8 +6,8 @@ from collections import OrderedDict
 
 from torch import nn
 
-from src.model.layers.conv_block import SEBasicBlock, SEBottleNeck
-from src.model.resnet import ResNet
+from src.backbone.layers.conv_block import SEBasicBlock, SEBottleNeck
+from src.backbone.resnet import ResNet
 from src.utils import load_from_zoo
 
 
@@ -26,26 +26,23 @@ class SeResNet(ResNet):
         return x
 
 
-def get_seresnet(model_name: str, nclass=1000, pretrained=False, dataset=None, **kwargs) -> nn.Module:
+def get_seresnet(model_name: str, pretrained=False) -> nn.Module:
     if model_name == 'seresnet18':
-        model = SeResNet(block=SEBasicBlock, nblock=[2, 2, 2, 2], nclass=nclass)
+        model = SeResNet(nblock=[2, 2, 2, 2], block=SEBasicBlock)
     elif model_name == 'seresnet34':
-        model = SeResNet(SEBasicBlock, [3, 4, 6, 3], nclass=nclass)
+        model = SeResNet(nblock=[3, 4, 6, 3], block=SEBasicBlock)
     elif model_name == 'seresnet50':
-        model = SeResNet(SEBottleNeck, [3, 4, 6, 3], nclass=nclass)
+        model = SeResNet(nblock=[3, 4, 6, 3], block=SEBottleNeck)
     elif model_name == 'seresnet101':
-        model = SeResNet(SEBottleNeck, [3, 4, 23, 3], nclass=nclass)
+        model = SeResNet(nblock=[3, 4, 23, 3], block=SEBottleNeck)
     elif model_name == 'seresnet152':
-        model = SeResNet(SEBottleNeck, [3, 8, 36, 3], nclass=nclass)
+        model = SeResNet(nblock=[3, 8, 36, 3], block=SEBottleNeck)
     elif model_name == 'seresnext50_32x4d':
-        model = SeResNet(SEBottleNeck, [3, 8, 36, 3], nclass=nclass, groups=32, base_width=4)
+        model = SeResNet(nblock=[3, 8, 36, 3], block=SEBottleNeck, groups=32, base_width=4)
     else:
         raise AssertionError("No model like that in SE ResNet model")
 
     if pretrained:
         load_from_zoo(model, model_name)
-
-    if dataset:
-        pass
 
     return model

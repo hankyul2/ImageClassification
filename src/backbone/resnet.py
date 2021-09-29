@@ -5,20 +5,26 @@ import torch
 from einops import rearrange
 from torch import nn
 
-from src.model.layers.conv_block import BasicBlock, BottleNeck, conv1x1, resnet_normal_init, resnet_zero_init, \
+from src.backbone.layers.conv_block import BasicBlock, BottleNeck, conv1x1, resnet_normal_init, resnet_zero_init, \
     PreActBasicBlock, PreActBottleNeck
 from src.utils import load_from_zoo
 
 
 class ResNet(nn.Module):
-    def __init__(self, block: Type[Union[BasicBlock, PreActBasicBlock, PreActBottleNeck, BottleNeck]],
-                 nblock: list, nclass: int = 1000, channels: list = [64, 128, 256, 512], strides=[1, 2, 2, 2],
-                 norm_layer: nn.Module = nn.BatchNorm2d, groups=1, base_width=64) -> None:
+    def __init__(self,
+                 nblock: list,
+                 block: Type[Union[BasicBlock, PreActBasicBlock, PreActBottleNeck, BottleNeck]],
+                 norm_layer: nn.Module = nn.BatchNorm2d,
+                 channels: list = [64, 128, 256, 512],
+                 strides=[1, 2, 2, 2],
+                 groups=1,
+                 base_width=64) -> None:
         super(ResNet, self).__init__()
         self.groups = groups
         self.base_width = base_width
         self.norm_layer = norm_layer
         self.in_channels = channels[0]
+        self.out_channels = channels[-1] * block.factor
 
         self.conv1 = nn.Conv2d(3, self.in_channels, kernel_size=(7, 7), stride=2, padding=(3, 3), bias=False)
         self.bn1 = self.norm_layer(self.in_channels)
@@ -26,7 +32,6 @@ class ResNet(nn.Module):
         self.maxpool = nn.MaxPool2d(kernel_size=(3, 3), stride=2, padding=1)
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.flatten = nn.Flatten()
-        self.fc = nn.Linear(channels[-1] * block.factor, nclass) if nclass else nn.Identity()
 
         self.layers = [self.make_layer(block=block, nblock=nblock[i], channels=channels[i], stride=strides[i]) for i in range(len(nblock))]
         self.register_layer()
@@ -59,16 +64,9 @@ class ResNet(nn.Module):
             x = layer(x)
         return x
 
-    def forward_impl(self, x):
+    def forward(self, x):
         x = self.features(x)
-        return self.fc(self.flatten(self.avgpool(x)))
-
-    def predict(self, x):
-        x = self.features(x)
-        return self.fc(self.flatten(self.avgpool(x)))
-
-    def forward(self, *args):
-        return self.forward_impl(*args) if self.training else self.predict(*args)
+        return self.flatten(self.avgpool(x))
 
     def load_npz(self, npz):
         name_convertor = [
@@ -95,30 +93,27 @@ def npz_dim_convertor(name, weight):
     return weight
 
 
-def get_resnet(model_name: str, nclass=1000, zero_init_residual=False, pretrained=False, dataset=None, **kwargs) -> nn.Module:
+def get_resnet(model_name: str, zero_init_residual=False, pretrained=False) -> nn.Module:
     if model_name == 'resnet18':
-        model = ResNet(block=BasicBlock, nblock=[2, 2, 2, 2], nclass=nclass)
+        model = ResNet(nblock=[2, 2, 2, 2], block=BasicBlock)
     elif model_name == 'resnet34':
-        model = ResNet(BasicBlock, [3, 4, 6, 3], nclass=nclass)
+        model = ResNet(nblock=[3, 4, 6, 3], block=BasicBlock)
     elif model_name == 'resnet50':
-        model = ResNet(BottleNeck, [3, 4, 6, 3], nclass=nclass)
+        model = ResNet(nblock=[3, 4, 6, 3], block=BottleNeck)
     elif model_name == 'resnet101':
-        model = ResNet(BottleNeck, [3, 4, 23, 3], nclass=nclass)
+        model = ResNet(nblock=[3, 4, 23, 3], block=BottleNeck)
     elif model_name == 'resnet152':
-        model = ResNet(BottleNeck, [3, 8, 36, 3], nclass=nclass)
+        model = ResNet(nblock=[3, 8, 36, 3], block=BottleNeck)
     elif model_name == 'resnext50_32x4d':
-        model = ResNet(BottleNeck, [3, 8, 36, 3], nclass=nclass, groups=32, base_width=4)
+        model = ResNet(nblock=[3, 8, 36, 3], block=BottleNeck, groups=32, base_width=4)
     elif model_name == 'wide_resnet50_2':
-        model = ResNet(BottleNeck, [3, 8, 36, 3], nclass=nclass, base_width=128)
+        model = ResNet(nblock=[3, 8, 36, 3], block=BottleNeck, base_width=128)
 
     resnet_normal_init(model)
     resnet_zero_init(model, zero_init_residual)
 
     if pretrained:
         load_from_zoo(model, model_name)
-
-    if dataset:
-        pass
 
     return model
 

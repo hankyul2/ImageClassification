@@ -2,13 +2,13 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
-from src.model.layers.conv_block import InvertedResidualBlock, conv1x1, conv3x3, ConvBNReLU, mobilenet_v2_init
+from src.backbone.layers.conv_block import InvertedResidualBlock, conv1x1, conv3x3, ConvBNReLU, mobilenet_v2_init
 from src.utils import load_from_zoo
 
 
 class MobileNetV2(nn.Module):
     """This implementation follow torchvision works"""
-    def __init__(self, nclass, block=InvertedResidualBlock):
+    def __init__(self, block=InvertedResidualBlock):
         super(MobileNetV2, self).__init__()
         layer_infos = [
             # t, c, n, s
@@ -25,18 +25,15 @@ class MobileNetV2(nn.Module):
         self.act = nn.ReLU6
 
         self.in_channel = 32
-        self.out_channel = 1280
+        self.out_channels = 1280
 
         self.features = nn.Sequential(
             ConvBNReLU(3, self.in_channel, 2, conv3x3, self.norm_layer, self.act),
             *[layer for layer_info in layer_infos for layer in self.make_layers(*layer_info, block)],
-            ConvBNReLU(layer_infos[-1][1], self.out_channel, 1, conv1x1, self.norm_layer, self.act)
+            ConvBNReLU(layer_infos[-1][1], self.out_channels, 1, conv1x1, self.norm_layer, self.act)
         )
         self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = nn.Sequential(
-            nn.Dropout(p=0.2),
-            nn.Linear(self.out_channel, nclass)
-        )
+        self.dropout = nn.Dropout(p=0.2)
 
     def make_layers(self, factor, nchannel, nlayer, stride, block):
         layers = []
@@ -47,22 +44,13 @@ class MobileNetV2(nn.Module):
             stride = 1
         return layers
 
-    def features(self, x):
-        return torch.flatten(self.avg_pool(self.features(x)), 1)
-
-    def forward_impl(self, x):
-        return self.fc(self.features(x))
-
-    def predict(self, x):
-        return self.fc(self.features(x))
-
-    def forward(self, *args):
-        return self.features(*args) if self.training else self.predict(*args)
+    def forward(self, x):
+        return self.dropout(torch.flatten(self.avg_pool(self.features(x)), 1))
 
 
-def get_mobilenet_v2(model_name:str, nclass=100, pretrained=True, **kwargs) -> nn.Module:
+def get_mobilenet_v2(model_name:str, pretrained=True) -> nn.Module:
     """Get mobilenet_v2 only support 1 model"""
-    model = MobileNetV2(nclass)
+    model = MobileNetV2()
 
     mobilenet_v2_init(model)
 
