@@ -62,7 +62,7 @@ class BaseVisionSystem(pl.LightningModule):
         return loss
 
     def compute_loss(self, x, y):
-        return self.compute_loss_eval(x, y)
+        raise NotImplementedError
 
     def compute_loss_eval(self, x, y):
         y_hat = self.fc(self.backbone(x))
@@ -70,13 +70,7 @@ class BaseVisionSystem(pl.LightningModule):
         return loss, y_hat
 
     def configure_optimizers(self):
-        optimizer = instantiate_class([
-            {'params': self.backbone.parameters(), 'lr': self.optimizer_init_config['init_args']['lr'] * 0.1},
-            {'params': self.fc.parameters()},
-        ], self.optimizer_init_config)
-
-        lr_scheduler = {'scheduler': instantiate_class(optimizer, self.update_and_get_lr_scheduler_config()), 'interval': 'step'}
-        return {'optimizer': optimizer, 'scheduler': lr_scheduler}
+        raise NotImplementedError
 
     def update_and_get_lr_scheduler_config(self):
         if 'num_step' in self.lr_scheduler_init_config['init_args']:
