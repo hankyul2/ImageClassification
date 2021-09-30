@@ -1,7 +1,7 @@
 from pytorch_lightning.utilities.cli import LightningCLI
 
 from src.data.base_data_module import BaseDataModule
-from src.system.base_vision_system import BaseVisionSystem
+from src.system.base import BaseVisionSystem
 
 
 class MyLightningCLI(LightningCLI):
