@@ -70,3 +70,4 @@ def load_npz_from_url(url, file_name):
     if not Path(file_name).exists():
         subprocess.run(["wget", "-r", "-nc", '-O', file_name, url])
     return np.load(file_name)
+

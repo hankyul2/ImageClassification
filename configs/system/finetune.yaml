@@ -1,8 +1,11 @@
+# 0. set project name
+project_name: "hankyul2/ImageClassification"
+
 # 1. load data
 data:
-  class_path: src.data.cifar.CIFAR10_DataModule
+  class_path: src.data.cifar.CIFAR
   init_args:
-    dataset_name: cifar10
+    dataset_name: "cifar10"
     batch_size: 16
     num_workers: 4
     size:
@@ -47,7 +50,6 @@ trainer:
   max_epochs: 1
 
   # 4-3. logger & callbacks
-  logger: true
   log_every_n_steps: 50
   callbacks: null
   checkpoint_callback: true
