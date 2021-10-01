@@ -1,3 +1,5 @@
+from typing import Type, Any
+
 from torch.utils.data import random_split, DataLoader
 import pytorch_lightning as pl
 from pytorch_lightning.utilities.types import TRAIN_DATALOADERS, EVAL_DATALOADERS
@@ -7,16 +9,18 @@ from torchvision import transforms
 class BaseDataModule(pl.LightningDataModule):
     def __init__(self,
                  dataset_name: str,
+                 dataset: Type[Any],
+                 train_transform: Type[Any],
+                 test_transform: Type[Any],
                  batch_size: int = 64,
                  num_workers: int = 4,
-                 size: tuple = (224, 224),
                  data_root: str = 'data',
                  valid_ratio: float = 0.1):
         """
         Base Data Module
 
         :arg
-            dataset_name: Enter which dataset name
+            Dataset: Enter Dataset
             batch_size: Enter batch size
             num_workers: Enter number of workers
             size: Enter resized image
@@ -25,22 +29,20 @@ class BaseDataModule(pl.LightningDataModule):
         """
         super(BaseDataModule, self).__init__()
         self.dataset_name = dataset_name
+        self.dataset = dataset
+        self.train_transform = train_transform
+        self.test_transform = test_transform
         self.batch_size = batch_size
         self.num_workers = num_workers
-        self.size = size
         self.data_root = data_root
         self.valid_ratio = valid_ratio
         self.num_classes = None
         self.num_step = None
-        self.mean = None
-        self.std = None
-        self.Dataset = None
-        self.train_transform = None
-        self.test_transform = None
+        self.prepare_data()
 
     def prepare_data(self) -> None:
-        train = self.Dataset(root=self.data_root, train=True, download=True)
-        test = self.Dataset(root=self.data_root, train=True, download=True)
+        train = self.dataset(root=self.data_root, train=True, download=True)
+        test = self.dataset(root=self.data_root, train=False, download=True)
         self.num_classes = len(train.classes)
         self.num_step = len(train) // self.batch_size
 
@@ -52,11 +54,11 @@ class BaseDataModule(pl.LightningDataModule):
 
     def setup(self, stage: str = None):
         if stage in (None, 'fit'):
-            ds = self.Dataset(root=self.data_root, train=True, transform=self.train_transform)
+            ds = self.dataset(root=self.data_root, train=True, transform=self.train_transform)
             self.train_ds, self.valid_ds = self.split_train_valid(ds)
 
         elif stage in (None, 'test'):
-            self.test_ds = self.Dataset(root=self.data_root, train=False, transform=self.test_transform)
+            self.test_ds = self.dataset(root=self.data_root, train=False, transform=self.test_transform)
 
     def split_train_valid(self, ds):
         ds_len = len(ds)
