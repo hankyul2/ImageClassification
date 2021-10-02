@@ -9,10 +9,9 @@ def compute_linear(x, a, b):
 
 class CosineLR(_LRScheduler):
     def __init__(self, optimizer, num_step: int, max_epochs: int, warmup_epoch: int = 1,
-                 start_lr: float = 6e-3, last_epoch: int = -1, verbose: bool = False):
+                 last_epoch: int = -1, verbose: bool = False):
         self.niter = max_epochs * num_step
         self.warmup = num_step * warmup_epoch
-        self.start_lr = start_lr
         super(CosineLR, self).__init__(optimizer, last_epoch=last_epoch, verbose=verbose)
 
     def get_lr(self, step=None):
@@ -20,7 +19,8 @@ class CosineLR(_LRScheduler):
         lrs = []
         for lr in self.base_lrs:
             if step < self.warmup:
-                lrs.append(compute_linear(x=step / self.warmup, a=lr - self.start_lr, b=self.start_lr))
+                start_lr = lr / 5
+                lrs.append(compute_linear(x=step / self.warmup, a=lr - start_lr, b=start_lr))
             else:
                 cosine_y = (1 + math.cos(math.pi * (step - self.warmup) / (self.niter - self.warmup))) / 2
                 lrs.append(compute_linear(x=cosine_y, a=lr, b=0))
@@ -29,10 +29,9 @@ class CosineLR(_LRScheduler):
 
 class PowerLR(_LRScheduler):
     def __init__(self, optimizer, num_step: int, max_epochs: int, warmup_epoch: int = 1,
-                 start_lr: float = 6e-3, last_epoch: int = -1, verbose: bool = False):
+                 last_epoch: int = -1, verbose: bool = False):
         self.niter = max_epochs * num_step
         self.warmup = num_step * warmup_epoch
-        self.start_lr = start_lr
         super(PowerLR, self).__init__(optimizer, last_epoch=last_epoch, verbose=verbose)
 
     def get_lr(self, step=None):
@@ -40,7 +39,8 @@ class PowerLR(_LRScheduler):
         lrs = []
         for lr in self.base_lrs:
             if step < self.warmup:
-                lrs.append(compute_linear(x=step / self.warmup, a=lr - self.start_lr, b=self.start_lr))
+                start_lr = lr / 5
+                lrs.append(compute_linear(x=step / self.warmup, a=lr - start_lr, b=start_lr))
             else:
                 lrs.append(
                     compute_linear(x=(1 + 10 * (step - self.warmup) / (self.niter - self.warmup)) ** (-0.75), a=lr,
