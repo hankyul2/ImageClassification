@@ -17,5 +17,5 @@ class Finetune(BaseVisionSystem):
 
         lr_scheduler = {'scheduler': instantiate_class(optimizer, self.update_and_get_lr_scheduler_config()),
                         'interval': 'step'}
-        return {'optimizer': optimizer, 'scheduler': lr_scheduler}
+        return {'optimizer': optimizer, 'lr_scheduler': lr_scheduler}
 

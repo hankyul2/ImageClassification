@@ -42,7 +42,7 @@ model_urls = {
 }
 
 
-def load_from_zoo(model, model_name, pretrained_path='pretrained_path'):
+def load_from_zoo(model, model_name, pretrained_path='pretrained/official'):
     model_name = change_384_224(model_name)
     Path(os.path.join(pretrained_path, model_name)).mkdir(parents=True, exist_ok=True)
     if model_urls[model_name].endswith('pth'):

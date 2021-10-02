@@ -20,19 +20,18 @@ class BaseVisionSystem(pl.LightningModule):
             lr_scheduler_init: learning rate scheduler class path and init args
         """
         super(BaseVisionSystem, self).__init__()
-        self.save_hyperparameters()
 
         # step 1. save data related info (not defined here)
         self.num_step = num_step
         self.max_epochs = max_epochs
 
         # step 2. define model
-        self.backbone = get_model(**self.hparams['backbone_init'])
-        self.fc = nn.Linear(self.backbone.out_channels, self.hparams['num_classes'])
+        self.backbone = get_model(**backbone_init)
+        self.fc = nn.Linear(self.backbone.out_channels, num_classes)
 
         # step 3. define lr tools (optimizer, lr scheduler)
-        self.optimizer_init_config = self.hparams['optimizer_init']
-        self.lr_scheduler_init_config = self.hparams['lr_scheduler_init']
+        self.optimizer_init_config = optimizer_init
+        self.lr_scheduler_init_config = lr_scheduler_init
         self.criterion = nn.CrossEntropyLoss()
 
         # step 4. define metric
