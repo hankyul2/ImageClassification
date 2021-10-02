@@ -57,7 +57,7 @@ class BaseDataModule(pl.LightningDataModule):
             ds = self.dataset(root=self.data_root, train=True, transform=self.train_transform)
             self.train_ds, self.valid_ds = self.split_train_valid(ds)
 
-        elif stage in (None, 'test'):
+        elif stage in (None, 'test', 'predict'):
             self.test_ds = self.dataset(root=self.data_root, train=False, transform=self.test_transform)
 
     def split_train_valid(self, ds):
@@ -73,4 +73,7 @@ class BaseDataModule(pl.LightningDataModule):
         return DataLoader(self.valid_ds, batch_size=self.batch_size, shuffle=False, num_workers=self.num_workers)
 
     def test_dataloader(self) -> EVAL_DATALOADERS:
+        return DataLoader(self.test_ds, batch_size=self.batch_size, shuffle=False, num_workers=self.num_workers)
+
+    def predict_dataloader(self) -> EVAL_DATALOADERS:
         return DataLoader(self.test_ds, batch_size=self.batch_size, shuffle=False, num_workers=self.num_workers)

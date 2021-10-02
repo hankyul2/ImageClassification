@@ -1,6 +1,6 @@
-# 0. set project name
+# 0. project & run setting
 project_name: "hankyul2/ImageClassification"
-short_id: ''
+short_id: 'IM-44'
 
 # 1. load data
 data:
@@ -49,7 +49,7 @@ trainer:
   # 4-2. train setting
   check_val_every_n_epoch: 1
   val_check_interval: 1.0
-  max_epochs: 10
+  max_epochs: 5
 
   # 4-3. logger & callbacks
   log_every_n_steps: 50
@@ -66,7 +66,7 @@ trainer:
   limit_train_batches: 0.1
   limit_val_batches: 0.1
   limit_test_batches: 0.1
-  limit_predict_batches: 0.1
+  limit_predict_batches: 0.05
 
   # 4-6. etc
   profiler: null

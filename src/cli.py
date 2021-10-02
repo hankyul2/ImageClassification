@@ -1,3 +1,4 @@
+import glob
 import os
 from typing import Any
 
@@ -29,35 +30,54 @@ class MyLightningCLI(LightningCLI):
         config, subcommand = self.get_command_and_config()
         short_id, project_name, dataset_name, model_name = self.get_log_info_from_config(config)
         log_name = self.get_log_name(dataset_name, model_name)
+        checkpoint = self.get_checkpoint(log_dir, log_name, short_id, subcommand)
 
         # 2. define logger
-        neptune_logger = self.get_neptune_logger(log_name, project_name, short_id)
+        neptune_logger = self.get_neptune_logger(project_name, log_name, short_id, subcommand)
         neptune_logger.log_hyperparams(config)
         tensorboard_logger = TensorBoardLogger(log_dir, log_name, neptune_logger.version)
         csv_logger = CSVLogger(log_dir, log_name, neptune_logger.version)
-        logger = [neptune_logger, tensorboard_logger, csv_logger]
 
         # 3. define callback for Checkpoint, LR Scheduler
         save_dir = os.path.join(log_dir, log_name, neptune_logger.version)
         best_save_dir = os.path.join('pretrained', 'in_this_work', log_name)
-        callback = [
-            ModelCheckpoint(dirpath=save_dir, save_last=True,
-                            filename='epoch={epoch}_step={other_metric:.2f}_loss={valid/loss:.3f}',
-                            monitor='valid/loss', mode='min', auto_insert_metric_name=False),
-            LearningRateMonitor()
-        ]
+        model_checkpoint_callback = ModelCheckpoint(
+            dirpath=save_dir, save_last=True,
+            filename='epoch={epoch}_step={other_metric:.2f}_loss={valid/loss:.3f}',
+            monitor='valid/loss', mode='min', auto_insert_metric_name=False
+        )
+        lr_callback = LearningRateMonitor()
 
         # 4. pass to trainer
-        kwargs = {**kwargs, 'logger': logger, 'default_root_dir': save_dir, 'callbacks': callback}
+        logger = callback = []
+        if subcommand == 'fit':
+            logger = [neptune_logger, tensorboard_logger, csv_logger]
+            callback = [model_checkpoint_callback, lr_callback]
+        elif subcommand in ('test', 'predict'):
+            logger = [neptune_logger]
+
+        kwargs = {**kwargs, 'logger': logger, 'default_root_dir': save_dir,
+                  'callbacks': callback, 'resume_from_checkpoint': checkpoint}
 
         return super().instantiate_trainer(**kwargs)
+
+    def get_checkpoint(self, log_dir, log_name, short_id, subcommand):
+        if short_id:
+            best, last = sorted(glob.glob(os.path.join(log_dir, log_name, short_id, '*.ckpt')))
+            if subcommand == 'fit':
+                return last
+            else:
+                self.config_init[subcommand]['ckpt_path'] = best
+                return None
+        else:
+            return None
 
     @staticmethod
     def get_log_name(dataset_name, model_name):
         return f'{model_name}_{dataset_name}'
 
     @staticmethod
-    def get_neptune_logger(log_name, project_name, short_id):
+    def get_neptune_logger(project_name, log_name, short_id, subcommand):
         return NeptuneLogger(
                 run=neptune.init(
                     project=project_name,
@@ -65,6 +85,7 @@ class MyLightningCLI(LightningCLI):
                     name=log_name,
                     run=short_id,
                 ),
+                prefix=subcommand
             )
 
     @staticmethod

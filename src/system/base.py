@@ -1,7 +1,12 @@
-import pytorch_lightning as pl
-from pytorch_lightning.utilities.cli import instantiate_class
-from torchmetrics import MetricCollection, Accuracy
+import numpy as np
+import matplotlib.pyplot as plt
+from neptune.new.types import File
+
 from torch import nn
+import torch.nn.functional as F
+
+import pytorch_lightning as pl
+from torchmetrics import MetricCollection, Accuracy
 
 from src.backbone.models import get_model
 
@@ -42,6 +47,26 @@ class BaseVisionSystem(pl.LightningModule):
 
     def forward(self, x):
         return self.fc(self.backbone(x))
+
+    def predict_step(self, batch, batch_idx, dataloader_idx=None):
+        x, y = batch
+        y_hat = self(x)
+        y_prob, y_pred = F.softmax(y_hat).max(dim=1)
+        self.log_pred(x, y, y_pred, y_prob, batch_idx)
+        return y_hat
+
+    def log_pred(self, x, y, y_pred, y_prob, batch_idx):
+        plt.figure(figsize=(16, 20))
+        for i in range(5):
+            img, pred, prob, label = x[i].detach(), y_pred[i].detach(), y_prob[i].detach(), y[i].detach()
+            np_img = img.cpu().numpy().astype(np.int)
+            is_right = pred == label
+            plt.subplot(1, 5, i + 1)
+            plt.xticks([])
+            plt.yticks([])
+            plt.imshow(np.transpose(np_img, (1, 2, 0)))
+            plt.title("{} ({:05.2f}%) right: {}".format(pred, prob * 100, is_right))
+        self.logger.experiment[0][f'predict/predict_result/{batch_idx}'].log(File.as_image(plt.gcf()))
 
     def training_step(self, batch, batch_idx, optimizer_idx=None):
         return self.shared_step(batch, self.train_metric, 'train', add_dataloader_idx=False)
