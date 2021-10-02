@@ -26,7 +26,7 @@ class SeResNet(ResNet):
         return x
 
 
-def get_seresnet(model_name: str, pretrained=False) -> nn.Module:
+def get_seresnet(model_name: str, pretrained=False, **kwargs) -> nn.Module:
     if model_name == 'seresnet18':
         model = SeResNet(nblock=[2, 2, 2, 2], block=SEBasicBlock)
     elif model_name == 'seresnet34':

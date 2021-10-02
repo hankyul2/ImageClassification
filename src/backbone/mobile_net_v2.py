@@ -48,7 +48,7 @@ class MobileNetV2(nn.Module):
         return self.dropout(torch.flatten(self.avg_pool(self.features(x)), 1))
 
 
-def get_mobilenet_v2(model_name:str, pretrained=True) -> nn.Module:
+def get_mobilenet_v2(model_name:str, pretrained=True, **kwargs) -> nn.Module:
     """Get mobilenet_v2 only support 1 model"""
     model = MobileNetV2()
 

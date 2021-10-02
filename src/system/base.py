@@ -103,3 +103,11 @@ class BaseVisionSystem(pl.LightningModule):
             self.lr_scheduler_init_config['init_args']['max_epochs'] = self.max_epochs
         return self.lr_scheduler_init_config
 
+    @property
+    def lr(self):
+        return self.optimizer_init_config['init_args']['lr']
+
+    @lr.setter
+    def lr(self, val):
+        self.optimizer_init_config['init_args']['lr'] = val
+

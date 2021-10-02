@@ -210,7 +210,7 @@ def build_vit(d_model=512, h=8, d_ff=2048, N=6, patch_size=(16, 16), img_size=(2
     return vit
 
 
-def get_vit(model_name: str, pretrained=False, pre_logits=False, dropout=0.1):
+def get_vit(model_name: str, pretrained=False, pre_logits=False, dropout=0.1, **kwargs):
     '''model_name_form: vit_{base,large}_patch{16,32}_{224,384}'''
     if 'vit_base' in model_name:
         d_model, h, d_ff, N = 768, 12, 3072, 12
