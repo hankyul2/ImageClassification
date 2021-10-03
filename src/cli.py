@@ -113,7 +113,8 @@ class MyLightningCLI(LightningCLI):
                     name=log_name,
                     run=short_id,
                 ),
-                prefix=subcommand
+                prefix=subcommand,
+                log_model_checkpoints=False
             )
 
     @staticmethod

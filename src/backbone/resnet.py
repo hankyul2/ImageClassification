@@ -7,7 +7,7 @@ from torch import nn
 
 from src.backbone.layers.conv_block import BasicBlock, BottleNeck, conv1x1, resnet_normal_init, resnet_zero_init, \
     PreActBasicBlock, PreActBottleNeck
-from src.utils import load_from_zoo
+from src.backbone.utils import load_from_zoo
 
 
 class ResNet(nn.Module):

@@ -8,7 +8,7 @@ import torch.nn.functional as F
 import copy
 import re
 
-from src.utils import load_from_zoo
+from src.backbone.utils import load_from_zoo
 
 
 def is_pair(img_size):

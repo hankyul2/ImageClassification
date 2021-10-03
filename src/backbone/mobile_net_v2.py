@@ -1,9 +1,8 @@
 import torch
 from torch import nn
-import torch.nn.functional as F
 
 from src.backbone.layers.conv_block import InvertedResidualBlock, conv1x1, conv3x3, ConvBNReLU, mobilenet_v2_init
-from src.utils import load_from_zoo
+from src.backbone.utils import load_from_zoo
 
 
 class MobileNetV2(nn.Module):

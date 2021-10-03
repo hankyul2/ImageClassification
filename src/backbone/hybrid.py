@@ -6,7 +6,7 @@ from torch import nn
 from src.backbone.layers.conv_block import BottleNeck
 from src.backbone.resnet import ResNet
 from src.backbone.vit import build_vit
-from src.utils import load_from_zoo
+from src.backbone.utils import load_from_zoo
 
 
 class Hybrid(nn.Module):
