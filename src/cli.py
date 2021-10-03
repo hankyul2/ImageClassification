@@ -16,15 +16,20 @@ from src.lr_schedulers import CosineLR
 
 class MyLightningCLI(LightningCLI):
     def add_arguments_to_parser(self, parser):
-        parser.add_argument('--project_name')
-        parser.add_argument('--short_id')
-
+        # 1. link argument
         parser.link_arguments('data.num_classes', 'model.init_args.num_classes', apply_on='instantiate')
         parser.link_arguments('data.num_step', 'model.init_args.num_step', apply_on='instantiate')
         parser.link_arguments('trainer.max_epochs', 'model.init_args.max_epochs', apply_on='parse')
+
+        # 2. add optimizer & scheduler argument
         parser.add_optimizer_args((Adam, SGD), link_to='model.init_args.optimizer_init')
         parser.add_lr_scheduler_args((CosineLR,), link_to='model.init_args.lr_scheduler_init')
 
+        # 3. add custom argument
+        parser.add_argument('--project_name')
+        parser.add_argument('--short_id')
+
+        # 4. add shortcut
         self.add_shortcut(parser)
 
     def add_shortcut(self, parser):
@@ -43,6 +48,7 @@ class MyLightningCLI(LightningCLI):
         shortcut.add_argument('-l', '--shortcut.lr', type=float, help='Enter learning rate')
 
         parser.link_arguments('shortcut.gpus', 'trainer.gpus', apply_on='parse')
+        parser.link_arguments('shortcut.gpus', 'model.init_args.gpus', apply_on='parse')
         parser.link_arguments('shortcut.max_epochs', 'trainer.max_epochs', apply_on='parse')
         parser.link_arguments('shortcut.model_name', 'model.init_args.backbone_init.model_name', apply_on='parse')
         parser.link_arguments('shortcut.dropout', 'model.init_args.backbone_init.dropout', apply_on='parse')
@@ -51,6 +57,18 @@ class MyLightningCLI(LightningCLI):
         parser.link_arguments('shortcut.batch_size', 'data.init_args.batch_size', apply_on='parse')
         parser.link_arguments('shortcut.num_workers', 'data.init_args.num_workers', apply_on='parse')
         parser.link_arguments('shortcut.lr', 'optimizer.init_args.lr', apply_on='parse')
+
+    @staticmethod
+    def get_model_list():
+        return [
+            'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152', 'resnext50_32x4d', 'wide_resnet50_2',
+            'mobilenet_v2',
+            'seresnet18', 'seresnet34', 'seresnet50', 'seresnet101', 'seresnet152', 'seresnext50_32x4d',
+            'vit_base_patch16_224', 'vit_base_patch32_224', 'vit_large_patch16_224', 'vit_large_patch32_224',
+            'vit_base_patch16_384', 'vit_base_patch32_384', 'vit_large_patch16_384', 'vit_large_patch32_384',
+            'r50_vit_base_patch16_224', 'r50_vit_large_patch32_224', 'r50_vit_base_patch16_384',
+            'r50_vit_large_patch32_384',
+        ]
 
     def instantiate_trainer(self, **kwargs: Any) -> Trainer:
         # 1. load log meta info
@@ -89,6 +107,11 @@ class MyLightningCLI(LightningCLI):
 
         return super().instantiate_trainer(**kwargs)
 
+    def get_command_and_config(self):
+        subcommand = self.config['subcommand']
+        config = self.config[subcommand]
+        return config, subcommand
+
     def get_checkpoint(self, log_dir, log_name, short_id, subcommand):
         if short_id:
             best, last = sorted(glob.glob(os.path.join(log_dir, log_name, short_id, '*.ckpt')))[:2]
@@ -105,6 +128,14 @@ class MyLightningCLI(LightningCLI):
         return f'{model_name}_{dataset_name}'
 
     @staticmethod
+    def get_log_info_from_config(config):
+        short_id = None if config['short_id'] == '' else config['short_id']
+        project_name = config['project_name']
+        dataset_name = config['data']['init_args']['dataset_name']
+        model_name = config['model']['init_args']['backbone_init']['model_name']
+        return short_id, project_name, dataset_name, model_name
+
+    @staticmethod
     def get_neptune_logger(project_name, log_name, short_id, subcommand):
         return NeptuneLogger(
                 run=neptune.init(
@@ -116,27 +147,3 @@ class MyLightningCLI(LightningCLI):
                 prefix=subcommand,
                 log_model_checkpoints=False
             )
-
-    @staticmethod
-    def get_log_info_from_config(config):
-        short_id = None if config['short_id'] == '' else config['short_id']
-        project_name = config['project_name']
-        dataset_name = config['data']['init_args']['dataset_name']
-        model_name = config['model']['init_args']['backbone_init']['model_name']
-        return short_id, project_name, dataset_name, model_name
-
-    def get_command_and_config(self):
-        subcommand = self.config['subcommand']
-        config = self.config[subcommand]
-        return config, subcommand
-
-    def get_model_list(self):
-        return [
-            'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152', 'resnext50_32x4d', 'wide_resnet50_2',
-            'mobilenet_v2',
-            'seresnet18', 'seresnet34', 'seresnet50', 'seresnet101', 'seresnet152', 'seresnext50_32x4d',
-            'vit_base_patch16_224', 'vit_base_patch32_224', 'vit_large_patch16_224', 'vit_large_patch32_224',
-            'vit_base_patch16_384', 'vit_base_patch32_384', 'vit_large_patch16_384', 'vit_large_patch32_384',
-            'r50_vit_base_patch16_224', 'r50_vit_large_patch32_224', 'r50_vit_base_patch16_384',
-            'r50_vit_large_patch32_384',
-        ]
