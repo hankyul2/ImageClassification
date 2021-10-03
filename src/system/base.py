@@ -12,7 +12,7 @@ from src.backbone.models import get_model
 
 
 class BaseVisionSystem(pl.LightningModule):
-    def __init__(self, backbone_init: dict, num_classes: int, num_step: int, max_epochs: int,
+    def __init__(self, backbone_init: dict, num_classes: int, num_step: int, gpus: str, max_epochs: int,
                  optimizer_init: dict, lr_scheduler_init: dict):
         """ Define base vision classification system
 
@@ -20,6 +20,7 @@ class BaseVisionSystem(pl.LightningModule):
             backbone_init: feature extractor
             num_classes: number of class of dataset
             num_step: number of step
+            gpus: gpus id
             max_epoch: max number of epoch
             optimizer_init: optimizer class path and init args
             lr_scheduler_init: learning rate scheduler class path and init args
@@ -27,7 +28,7 @@ class BaseVisionSystem(pl.LightningModule):
         super(BaseVisionSystem, self).__init__()
 
         # step 1. save data related info (not defined here)
-        self.num_step = num_step
+        self.num_step = num_step // len(gpus.split(','))
         self.max_epochs = max_epochs
 
         # step 2. define model
