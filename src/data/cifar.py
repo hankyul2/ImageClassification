@@ -1,5 +1,7 @@
 import random
+from time import sleep
 
+from torch.utils.data import random_split
 from torchvision import transforms
 from torchvision.datasets import CIFAR10, CIFAR100
 from src.data.base_data_module import BaseDataModule
@@ -48,3 +50,23 @@ class Noisy_CIFAR(CIFAR):
 
     def generate_noisy_label(self, x):
         return x if random.random() > self.noisy_ratio else random.randint(0, self.num_classes - 1)
+
+
+class Small_CIFAR(CIFAR):
+    def __init__(self, *args, sample_num: int = 10, **kwargs):
+        super(Small_CIFAR, self).__init__(*args, **kwargs)
+        self.sample_num = sample_num
+
+    def setup(self, stage: str = None):
+        if stage in (None, 'fit'):
+            ds = self.dataset(root=self.data_root, train=True, transform=self.train_transform)
+            self.train_ds, self.valid_ds, _ = self.split_train_valid(ds)
+
+        elif stage in (None, 'test', 'predict'):
+            self.test_ds = self.dataset(root=self.data_root, train=False, transform=self.test_transform)
+
+    def split_train_valid(self, ds):
+        ds_len = self.sample_num * self.num_classes
+        valid_ds_len = int(ds_len * self.valid_ratio)
+        train_ds_len = ds_len - valid_ds_len
+        return random_split(ds, [train_ds_len, valid_ds_len, len(ds) - ds_len])
