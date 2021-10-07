@@ -61,6 +61,7 @@ class MyLightningCLI(LightningCLI):
     @staticmethod
     def get_model_list():
         return [
+            'resnet32_20', 'resnet32_110',
             'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152', 'resnext50_32x4d', 'wide_resnet50_2',
             'mobilenet_v2',
             'seresnet18', 'seresnet34', 'seresnet50', 'seresnet101', 'seresnet152', 'seresnext50_32x4d',
