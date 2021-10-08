@@ -56,6 +56,7 @@ class Small_CIFAR(CIFAR):
     def __init__(self, *args, sample_num: int = 10, **kwargs):
         super(Small_CIFAR, self).__init__(*args, **kwargs)
         self.sample_num = sample_num
+        self.num_step = self.num_classes * sample_num // self.batch_size
 
     def setup(self, stage: str = None):
         if stage in (None, 'fit'):
