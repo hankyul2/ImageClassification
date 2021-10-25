@@ -3,7 +3,7 @@ project_name: "hankyul2/ImageClassification"
 short_id: ''
 
 shortcut:
-  gpus: '0,1'
+  gpus: '0,'
   max_epochs: 100
   model_name: 'resnet50'
   dropout: 0.0
@@ -13,7 +13,7 @@ shortcut:
     - 224
   batch_size: 32
   num_workers: 4
-  lr: 0.03
+  lr: 0.01
 
 # 1. load data
 data:
