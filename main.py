@@ -1,3 +1,7 @@
+import os
+
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
+
 from src.cli import MyLightningCLI
 from src.data.base_data_module import BaseDataModule
 from src.system.base import BaseVisionSystem
