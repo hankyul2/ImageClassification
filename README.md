@@ -41,8 +41,14 @@ This is basic Image Classification Repo. It contains pytorch implemented image c
 
 | Architecture                                                 | Pretrained on | Cifar10 | Cifar100 |
 | ------------------------------------------------------------ | ------------- | ------- | -------- |
-| ResNet50                                                     | ?             | 96.1    | 83.7     |
-| ResNet101                                                    | ?             | 97.2    | 85.6     |
+| ResNet50                                                     | ImageNet      | 97.6    | 86.0     |
+| ResNet101                                                    | ImageNet      | 97.9    | 87.7     |
+| SeNet50                                                      | ImageNet      |         |          |
+| SeNet101                                                     | ImageNet      |         |          |
+| MobileNet_v2                                                 | ImageNet      |         |          |
+| MobileNet_v3                                                 | ImageNet      |         |          |
+| EfficientNet_b0                                              | ImageNet      |         |          |
+| EfficientNet_b1                                              | ImageNet      |         |          |
 | ViT_base_16_224<br />([summary](docs/vit_base_patch16_224.md), ) | ImageNet21k   | 98.5    | 91.0     |
 | ViT_base_32_224<br />([summary](docs/vit_base_patch32_224.md), ) | ImageNet21k   | 98.2    | 89.9     |
 | ViT_large_16_224<br />([summary](docs/vit_large_patch16_224.md), ) | ImageNet21k   | 99.1    |          |
