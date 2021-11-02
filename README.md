@@ -42,20 +42,20 @@ This is basic Image Classification Repo. It contains pytorch implemented image c
 | Architecture                                                 | Pretrained on | Cifar10 | Cifar100 |
 | ------------------------------------------------------------ | ------------- | ------- | -------- |
 | ResNet50<br />([tf.dev](), [summary]())                      | ImageNet      | 97.6    | 86.0     |
-| ResNet101<br />([tf.dev](), [summary]())                     | ImageNet      | 97.9    | 87.7     |
-| SeNet50<br />([tf.dev](), [summary]())                       | ImageNet      |         |          |
-| SeNet101<br />([tf.dev](), [summary]())                      | ImageNet      |         |          |
-| MobileNet_v2<br />([tf.dev](), [summary]())                  | ImageNet      |         |          |
+| ResNet101<br />([tf.dev](), [summary]())                     | ImageNet      | 97.9    | 87.4     |
+| SeNet50<br />([tf.dev](), [summary]())                       | ImageNet      | 97.3    | 85.8     |
+| SeNet101<br />([tf.dev](), [summary]())                      | ImageNet      | 97.4    | 86.9     |
+| MobileNet_v2<br />([tf.dev](), [summary]())                  | ImageNet      | 96.8    | 82.4     |
 | MobileNet_v3<br />([tf.dev](), [summary]())                  | ImageNet      |         |          |
 | EfficientNet_b0<br />([tf.dev](), [summary]())               | ImageNet      |         |          |
 | EfficientNet_b1<br />([tf.dev](), [summary]())               | ImageNet      |         |          |
-| ViT_base_16_224<br />(([tf.dev](), [summary](docs/vit_base_patch16_224.md)) | ImageNet21k   | 98.5    | 91.0     |
+| ViT_base_16_224<br />(([tf.dev](), [summary](docs/vit_base_patch16_224.md)) | ImageNet21k   | 98.6    | 92.0     |
 | ViT_base_32_224<br />(([tf.dev](), [summary](docs/vit_base_patch32_224.md)) | ImageNet21k   | 98.2    | 89.9     |
 | ViT_large_16_224<br />([tf.dev](), ([summary](docs/vit_large_patch16_224.md)) | ImageNet21k   | 99.1    |          |
 | ViT_large_32_224<br />([tf.dev](), ([summary](docs/vit_large_patch32_224.md)) | ImageNet21k   | 98.4    | 90.7     |
 | R50 + ViT_base_16_224<br />([tf.dev](), [summary](docs/vit_base_patch16_224.md)) | ImageNet21k   | 98.6    |          |
 | R50 + ViT_large_32_224<br />([tf.dev](), [summary](docs/vit_base_patch16_224.md)) | ImageNet21k   | 98.6    |          |
-| ViT_base_16_384<br />([tf.dev](), [summary](docs/vit_base_patch16_384.md)) | ImageNet21k   | 98.4    | 91.4     |
+| ViT_base_16_384<br />([tf.dev](), [summary](docs/vit_base_patch16_384.md)) | ImageNet21k   | 98.2    | 90.0     |
 | ViT_base_32_384<br />([tf.dev](), [summary](docs/vit_base_patch32_224.md)) | ImageNet21k   | 98.1    | 90.1     |
 | ViT_large_16_384<br />([tf.dev](), [summary](docs/vit_large_patch16_224.md)) | ImageNet21k   |         |          |
 | ViT_large_32_384<br />([tf.dev](), [summary](docs/vit_large_patch32_224.md)) | ImageNet21k   |         |          |
