@@ -53,7 +53,7 @@ This is basic Image Classification Repo. It contains pytorch implemented image c
 | ViT_base_32_224<br />(([tf.dev](), [summary](docs/vit_base_patch32_224.md)) | ImageNet21k   | 98.2    | 89.9     |
 | ViT_large_16_224<br />([tf.dev](), ([summary](docs/vit_large_patch16_224.md)) | ImageNet21k   | 99.1    |          |
 | ViT_large_32_224<br />([tf.dev](), ([summary](docs/vit_large_patch32_224.md)) | ImageNet21k   | 98.4    | 90.7     |
-| R50 + ViT_base_16_224<br />([tf.dev](), [summary](docs/vit_base_patch16_224.md)) | ImageNet21k   | 98.6    |          |
+| R50 + ViT_base_16_224<br />([tf.dev](), [summary](docs/vit_base_patch16_224.md)) | ImageNet21k   | 97.7    | 88.8     |
 | R50 + ViT_large_32_224<br />([tf.dev](), [summary](docs/vit_base_patch16_224.md)) | ImageNet21k   | 98.6    |          |
 | ViT_base_16_384<br />([tf.dev](), [summary](docs/vit_base_patch16_384.md)) | ImageNet21k   | 98.2    | 90.0     |
 | ViT_base_32_384<br />([tf.dev](), [summary](docs/vit_base_patch32_224.md)) | ImageNet21k   | 98.1    | 90.1     |
