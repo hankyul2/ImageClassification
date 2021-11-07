@@ -1,3 +1,4 @@
+import torch
 from torch import nn
 import torch.nn.functional as F
 
@@ -6,8 +7,12 @@ def conv1x1(in_channels, out_channels, stride=1, groups=1, bias=False, conv=nn.C
     return conv(in_channels, out_channels, kernel_size=(1, 1), stride=stride, bias=bias, groups=groups)
 
 
-def conv3x3(in_channels, out_channels, stride=1, groups=1, conv=nn.Conv2d):
-    return conv(in_channels, out_channels, kernel_size=(3, 3), stride=stride, padding=1, bias=False, groups=groups)
+def conv3x3(in_channels, out_channels, stride=1, groups=1, padding=1, conv=nn.Conv2d):
+    return conv(in_channels, out_channels, kernel_size=(3, 3), stride=stride, padding=padding, bias=False, groups=groups)
+
+
+def conv5x5(in_channels, out_channels, stride=1, groups=1, padding=1, conv=nn.Conv2d):
+    return conv(in_channels, out_channels, kernel_size=(5, 5), stride=stride, padding=padding, bias=False, groups=groups)
 
 
 class BasicBlock(nn.Module):
@@ -109,6 +114,50 @@ class InvertedResidualBlock(nn.Module):
 
     def forward(self, x):
         return self.skip_connection(x) + self.conv(x)
+
+
+class StochasticDepth(nn.Module):
+    def __init__(self, prob, mode):
+        super(StochasticDepth, self).__init__()
+        self.prob = prob
+        self.survival = 1.0 - prob
+        self.mode = mode
+
+    def forward(self, x):
+        if self.prob == 0.0 or not self.training:
+            return x
+        else:
+            if self.mode == 'row':
+                drop_prob = torch.empty([x.size(0)] + [1] * (x.ndim - 1)).bernoulli_(self.survival)
+            else:
+                drop_prob = torch.bernoulli(self.survival)
+
+            return x * drop_prob.to(x.device).div_(self.survival)
+
+
+class MBConv(nn.Module):
+    """EfficientNet_v1 main building blocks (following torchvision & timm works)"""
+    def __init__(self, config, stochastic_depth_prob, norm_layer, act_layer=nn.SiLU):
+        super(MBConv, self).__init__()
+        inter_channel = config.adjust_channel(config.in_ch, config.expand_ratio)
+        layers = []
+        if config.expand_ratio != 1:
+            layers.append(ConvBNReLU(config.in_ch, inter_channel, 1, conv1x1, norm_layer, act_layer))
+        # Todo: Change this to adjust kernel size and padding
+        layers.append(ConvBNReLU(inter_channel, inter_channel, conv5x5, config.stride, norm_layer, act_layer))
+        # Todo: Change activation to SiLU
+        layers.append(SEUnit(inter_channel, config.expand_ratio * 4))
+        layers.append(ConvBNReLU(inter_channel, config.out_ch, 1, conv1x1, norm_layer, nn.Identity))
+        self.block = nn.Sequential(*layers)
+
+        self.stochastic_depth = StochasticDepth(stochastic_depth_prob, "row")
+        self.use_skip_connection = config.stride == 1 and config.in_ch == config.out_ch
+
+    def forward(self, x):
+        out = self.block(x)
+        if self.use_skip_connection:
+            out = x + self.stochastic_depth(out)
+        return out
 
 
 class SEUnit(nn.Module):
