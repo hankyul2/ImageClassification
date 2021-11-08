@@ -1,47 +1,52 @@
+import copy
+from functools import partial
+
 import torch
 from torch import nn
 
-from src.backbone.layers.conv_block import InvertedResidualBlock, conv1x1, conv3x3, ConvBNReLU, mobilenet_v2_init
+from src.backbone.layers.conv_block import ConvBNAct, mobilenet_v2_init, MBConvConfig, MBConv
 from src.backbone.utils import load_from_zoo
 
 
 class MobileNetV2(nn.Module):
     """This implementation follow torchvision works"""
-    def __init__(self, block=InvertedResidualBlock):
+    def __init__(self, layer_infos, dropout=0.2, stochastic_depth=0.0, block=MBConv, act_layer=nn.ReLU6, norm_layer=nn.BatchNorm2d):
         super(MobileNetV2, self).__init__()
-        layer_infos = [
-            # t, c, n, s
-            [1, 16, 1, 1],
-            [6, 24, 2, 2],
-            [6, 32, 3, 2],
-            [6, 64, 4, 2],
-            [6, 96, 3, 1],
-            [6, 160, 3, 2],
-            [6, 320, 1, 1],
-        ]
+        self.layer_infos = layer_infos
+        self.norm_layer = norm_layer
+        self.act = act_layer
 
-        self.norm_layer = nn.BatchNorm2d
-        self.act = nn.ReLU6
+        self.in_channel = layer_infos[0].in_ch
+        self.last_channels = layer_infos[-1].out_ch
+        self.out_channels = self.last_channels * 4
 
-        self.in_channel = 32
-        self.out_channels = 1280
+        self.cur_block = 0
+        self.num_block = sum(stage.num_layers for stage in layer_infos)
+        self.stochastic_depth = stochastic_depth
 
         self.features = nn.Sequential(
-            ConvBNReLU(3, self.in_channel, 2, conv3x3, self.norm_layer, self.act),
-            *[layer for layer_info in layer_infos for layer in self.make_layers(*layer_info, block)],
-            ConvBNReLU(layer_infos[-1][1], self.out_channels, 1, conv1x1, self.norm_layer, self.act)
+            ConvBNAct(3, self.in_channel, kernel_size=3, stride=2, norm_layer=self.norm_layer, act=self.act),
+            *self.make_stages(layer_infos, block),
+            ConvBNAct(self.last_channels, self.out_channels, kernel_size=1, stride=1, norm_layer=self.norm_layer, act=self.act)
         )
         self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
-        self.dropout = nn.Dropout(p=0.2)
+        self.dropout = nn.Dropout(p=dropout)
 
-    def make_layers(self, factor, nchannel, nlayer, stride, block):
+    def make_stages(self, layer_infos, block):
+        return [layer for layer_info in layer_infos for layer in self.make_layers(copy.copy(layer_info), block)]
+
+    def make_layers(self, layer_info, block):
         layers = []
-        for i in range(nlayer):
-            layers.append(block(factor, self.in_channel, nchannel, stride=stride,
-                                norm_layer=self.norm_layer, act=self.act))
-            self.in_channel = nchannel
-            stride = 1
+        for i in range(layer_info.num_layers):
+            layers.append(block(layer_info, norm_layer=self.norm_layer, act=self.act, sd_prob=self.get_sd_prob()))
+            layer_info.in_ch = layer_info.out_ch
+            layer_info.stride = 1
         return layers
+
+    def get_sd_prob(self):
+        sd_prob = self.stochastic_depth * (self.cur_block / self.num_block)
+        self.cur_block += 1
+        return sd_prob
 
     def forward(self, x):
         return self.dropout(torch.flatten(self.avg_pool(self.features(x)), 1))
@@ -49,7 +54,20 @@ class MobileNetV2(nn.Module):
 
 def get_mobilenet_v2(model_name:str, pretrained=True, **kwargs) -> nn.Module:
     """Get mobilenet_v2 only support 1 model"""
-    model = MobileNetV2()
+    mbconfig = partial(MBConvConfig, depth_mult=1.0, width_mult=1.0)
+
+    residual_config = [
+        #    expand k  s  in  out layers
+        mbconfig(1, 3, 1, 32, 16, 1),
+        mbconfig(6, 3, 2, 16, 24, 2),
+        mbconfig(6, 3, 2, 24, 32, 3),
+        mbconfig(6, 3, 2, 32, 64, 4),
+        mbconfig(6, 3, 1, 64, 96, 3),
+        mbconfig(6, 3, 2, 96, 160, 3),
+        mbconfig(6, 3, 1, 160, 320, 1),
+    ]
+
+    model = MobileNetV2(residual_config)
 
     mobilenet_v2_init(model)
 

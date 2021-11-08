@@ -1,3 +1,7 @@
+import copy
+import math
+from functools import partial
+
 import torch
 from torch import nn
 import torch.nn.functional as F
@@ -92,30 +96,6 @@ class PreActBottleNeck(BottleNeck):
         return self.downsample(x) + self.conv3(F.relu(self.bn3(out)))
 
 
-class ConvBNReLU(nn.Sequential):
-    """This is made following torchvision works"""
-    def __init__(self, in_channel, out_channel, stride, conv_layer, norm_layer, act, groups=1):
-        super(ConvBNReLU, self).__init__(conv_layer(in_channel, out_channel, stride=stride, groups=groups), norm_layer(out_channel), act())
-
-
-class InvertedResidualBlock(nn.Module):
-    def __init__(self, factor, in_channels, out_channels, stride, norm_layer, act=nn.ReLU6):
-        super(InvertedResidualBlock, self).__init__()
-        inter_channel = in_channels * factor
-        layers = []
-        if factor != 1:
-            layers.append(ConvBNReLU(in_channels, inter_channel, 1, conv1x1, norm_layer, act))
-        layers.append(ConvBNReLU(inter_channel, inter_channel, stride, conv3x3, norm_layer, act, groups=inter_channel))
-        layers.append(conv1x1(inter_channel, out_channels, stride=1))
-        layers.append(norm_layer(out_channels))
-        self.conv = nn.Sequential(*layers)
-
-        self.skip_connection = nn.Identity() if stride == 1 and in_channels == out_channels else lambda x: 0
-
-    def forward(self, x):
-        return self.skip_connection(x) + self.conv(x)
-
-
 class StochasticDepth(nn.Module):
     def __init__(self, prob, mode):
         super(StochasticDepth, self).__init__()
@@ -127,48 +107,105 @@ class StochasticDepth(nn.Module):
         if self.prob == 0.0 or not self.training:
             return x
         else:
-            if self.mode == 'row':
-                drop_prob = torch.empty([x.size(0)] + [1] * (x.ndim - 1)).bernoulli_(self.survival)
-            else:
-                drop_prob = torch.bernoulli(self.survival)
+            shape = [x.size(0)] + [1] * (x.ndim - 1) if self.mode == 'row' else [1]
+            return x * torch.empty(shape).bernoulli_(self.survival).div_(self.survival).to(x.device)
 
-            return x * drop_prob.to(x.device).div_(self.survival)
+
+class ConvBNAct(nn.Sequential):
+    """This is made following torchvision works"""
+    def __init__(self, in_channel, out_channel, kernel_size=3, stride=1, groups=1,
+                 conv_layer=nn.Conv2d, norm_layer=nn.BatchNorm2d, act=nn.ReLU):
+        super(ConvBNAct, self).__init__(
+            conv_layer(in_channel, out_channel, kernel_size, stride=stride, padding=(kernel_size-1)//2, groups=groups, bias=False),
+            norm_layer(out_channel),
+            act()
+        )
+
+
+class MBConvConfig:
+    """Mobile Conv stage configuration used for MobileNet_v2, EfficientNet"""
+    def __init__(self, expand_ratio, kernel, stride, in_ch, out_ch, layers, depth_mult=1.0, width_mult=1.0):
+        self.expand_ratio = expand_ratio
+        self.kernel = kernel
+        self.stride = stride
+        self.in_ch = self.adjust_channels(in_ch, width_mult)
+        self.out_ch = self.adjust_channels(out_ch, width_mult)
+        self.num_layers = self.adjust_depth(layers, depth_mult)
+
+    def __repr__(self):
+        s = self.__class__.__name__ + '('
+        s += "expand_ratio={expand_ratio}"
+        s += ", kernel={kernel}"
+        s += ", stride={stride}"
+        s += ", input_channels={in_ch}"
+        s += ", out_channels={out_ch}"
+        s += ", num_layers={num_layers}"
+        s += ")"
+        return s.format(**self.__dict__)
+
+    @staticmethod
+    def adjust_depth(layers, factor):
+        return int(math.ceil(layers * factor))
+
+    @staticmethod
+    def adjust_channels(channel, factor):
+        new_channel = channel * factor
+        divisible_channel = max(8, (int(new_channel + 4) // 8) * 8)
+        divisible_channel += 8 if divisible_channel < 0.9 * new_channel else 0
+        return divisible_channel
 
 
 class MBConv(nn.Module):
-    """EfficientNet_v1 main building blocks (following torchvision & timm works)"""
-    def __init__(self, config, stochastic_depth_prob, norm_layer, act_layer=nn.SiLU):
+    """MobileNet_v2 main building blocks (from torchvision)"""
+    def __init__(self, config, norm_layer, act=nn.ReLU6, sd_prob=0.0):
         super(MBConv, self).__init__()
-        inter_channel = config.adjust_channel(config.in_ch, config.expand_ratio)
+        inter_channel = config.adjust_channels(config.in_ch, config.expand_ratio)
         layers = []
         if config.expand_ratio != 1:
-            layers.append(ConvBNReLU(config.in_ch, inter_channel, 1, conv1x1, norm_layer, act_layer))
-        # Todo: Change this to adjust kernel size and padding
-        layers.append(ConvBNReLU(inter_channel, inter_channel, conv5x5, config.stride, norm_layer, act_layer))
-        # Todo: Change activation to SiLU
-        layers.append(SEUnit(inter_channel, config.expand_ratio * 4))
-        layers.append(ConvBNReLU(inter_channel, config.out_ch, 1, conv1x1, norm_layer, nn.Identity))
-        self.block = nn.Sequential(*layers)
+            layers.append(ConvBNAct(config.in_ch, inter_channel, kernel_size=1, stride=1, norm_layer=norm_layer, act=act))
+        layers.append(ConvBNAct(inter_channel, inter_channel, kernel_size=config.kernel, stride=config.stride, groups=inter_channel, norm_layer=norm_layer, act=act))
+        layers.append(conv1x1(inter_channel, config.out_ch, stride=1))
+        layers.append(norm_layer(config.out_ch))
+        self.conv = nn.Sequential(*layers)
 
-        self.stochastic_depth = StochasticDepth(stochastic_depth_prob, "row")
+        self.inter_channel = inter_channel
         self.use_skip_connection = config.stride == 1 and config.in_ch == config.out_ch
+        self.stochastic_path = StochasticDepth(sd_prob, "row")
+
+    def forward(self, x):
+        out = self.conv(x)
+        if self.use_skip_connection:
+            out = x + self.stochastic_path(out)
+        return out
+
+
+class MBConvSE(MBConv):
+    """EfficientNet main building blocks (from torchvision & timm works)"""
+    def __init__(self, config, norm_layer, act=nn.SiLU, sd_prob=0.0):
+        super(MBConvSE, self).__init__(config, norm_layer, act, sd_prob)
+        self.block = copy.deepcopy(self.conv)
+        self.block[-2] = SEUnit(self.inter_channel, config.expand_ratio * 4, act1=partial(act, inplace=True))
+        self.block[-1] = ConvBNAct(self.inter_channel, config.out_ch, kernel_size=1, stride=1, norm_layer=norm_layer, act=nn.Identity)
+        del self.conv
 
     def forward(self, x):
         out = self.block(x)
         if self.use_skip_connection:
-            out = x + self.stochastic_depth(out)
+            out = x + self.stochastic_path(out)
         return out
 
 
 class SEUnit(nn.Module):
-    def __init__(self, in_channel, reduction_ratio=16):
+    def __init__(self, in_channel, reduction_ratio=16, act1=nn.ReLU, act2=nn.Sigmoid):
         super(SEUnit, self).__init__()
         self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc1 = conv1x1(in_channel, in_channel // reduction_ratio, bias=True)
         self.fc2 = conv1x1(in_channel // reduction_ratio, in_channel, bias=True)
+        self.act1 = act1()
+        self.act2 = act2()
 
     def forward(self, x):
-        return x * F.sigmoid(self.fc2(F.relu(self.fc1(self.avg_pool(x)))))
+        return x * self.act2(self.fc2(self.act1(self.fc1(self.avg_pool(x)))))
 
 
 class SEBasicBlock(BasicBlock):
