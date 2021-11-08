@@ -1,0 +1,60 @@
+session_name: experiment0_1
+windows:
+  - window_name: cifar10
+    shell_command_before:
+      - source ~/.zshrc
+    panes:
+      - shell_command:
+        - python3 main.py fit --config configs/finetune.yaml -g 6, -m resnet50 -d cifar10
+        - python3 main.py fit --config configs/finetune.yaml -g 6, -m resnet50 -d cifar10
+        - python3 main.py fit --config configs/finetune.yaml -g 6, -m resnet50 -d cifar10
+        - python3 main.py fit --config configs/finetune.yaml -g 6, -m resnet101 -d cifar10
+        - python3 main.py fit --config configs/finetune.yaml -g 6, -m resnet101 -d cifar10
+        - python3 main.py fit --config configs/finetune.yaml -g 6, -m resnet101 -d cifar10
+        - python3 main.py fit --config configs/finetune.yaml -g 6, -m mobilenet_v2 -d cifar10
+        - python3 main.py fit --config configs/finetune.yaml -g 6, -m mobilenet_v2 -d cifar10
+        - python3 main.py fit --config configs/finetune.yaml -g 6, -m mobilenet_v2 -d cifar10
+        - python3 main.py fit --config configs/finetune.yaml -g 6, -m seresnet50 -d cifar10
+        - python3 main.py fit --config configs/finetune.yaml -g 6, -m seresnet50 -d cifar10
+        - python3 main.py fit --config configs/finetune.yaml -g 6, -m seresnet50 -d cifar10
+        - python3 main.py fit --config configs/finetune.yaml -g 6, -m seresnet101 -d cifar10
+        - python3 main.py fit --config configs/finetune.yaml -g 6, -m seresnet101 -d cifar10
+        - python3 main.py fit --config configs/finetune.yaml -g 6, -m seresnet101 -d cifar10
+        - python3 main.py fit --config configs/finetune.yaml -g 6, -m vit_base_patch16_224 -d cifar10
+        - python3 main.py fit --config configs/finetune.yaml -g 6, -m vit_base_patch16_224 -d cifar10
+        - python3 main.py fit --config configs/finetune.yaml -g 6, -m vit_base_patch16_224 -d cifar10
+        - python3 main.py fit --config configs/finetune.yaml -g 6, -m vit_base_patch16_384 -d cifar10 -s 384 384 -b 16
+        - python3 main.py fit --config configs/finetune.yaml -g 6, -m vit_base_patch16_384 -d cifar10 -s 384 384 -b 16
+        - python3 main.py fit --config configs/finetune.yaml -g 6, -m vit_base_patch16_384 -d cifar10 -s 384 384 -b 16
+        - python3 main.py fit --config configs/finetune.yaml -g 6, -m r50_vit_base_patch16_224 -d cifar10
+        - python3 main.py fit --config configs/finetune.yaml -g 6, -m r50_vit_base_patch16_224 -d cifar10
+        - python3 main.py fit --config configs/finetune.yaml -g 6, -m r50_vit_base_patch16_224 -d cifar10
+  - window_name: cifar100
+    shell_command_before:
+      - source ~/.zshrc
+    panes:
+      - shell_command:
+        - python3 main.py fit --config configs/finetune.yaml -g 7, -m resnet50 -d cifar100
+        - python3 main.py fit --config configs/finetune.yaml -g 7, -m resnet50 -d cifar100
+        - python3 main.py fit --config configs/finetune.yaml -g 7, -m resnet50 -d cifar100
+        - python3 main.py fit --config configs/finetune.yaml -g 7, -m resnet101 -d cifar100
+        - python3 main.py fit --config configs/finetune.yaml -g 7, -m resnet101 -d cifar100
+        - python3 main.py fit --config configs/finetune.yaml -g 7, -m resnet101 -d cifar100
+        - python3 main.py fit --config configs/finetune.yaml -g 7, -m mobilenet_v2 -d cifar100
+        - python3 main.py fit --config configs/finetune.yaml -g 7, -m mobilenet_v2 -d cifar100
+        - python3 main.py fit --config configs/finetune.yaml -g 7, -m mobilenet_v2 -d cifar100
+        - python3 main.py fit --config configs/finetune.yaml -g 7, -m seresnet50 -d cifar100
+        - python3 main.py fit --config configs/finetune.yaml -g 7, -m seresnet50 -d cifar100
+        - python3 main.py fit --config configs/finetune.yaml -g 7, -m seresnet50 -d cifar100
+        - python3 main.py fit --config configs/finetune.yaml -g 7, -m seresnet101 -d cifar100
+        - python3 main.py fit --config configs/finetune.yaml -g 7, -m seresnet101 -d cifar100
+        - python3 main.py fit --config configs/finetune.yaml -g 7, -m seresnet101 -d cifar100
+        - python3 main.py fit --config configs/finetune.yaml -g 7, -m vit_base_patch16_224 -d cifar100
+        - python3 main.py fit --config configs/finetune.yaml -g 7, -m vit_base_patch16_224 -d cifar100
+        - python3 main.py fit --config configs/finetune.yaml -g 7, -m vit_base_patch16_224 -d cifar100
+        - python3 main.py fit --config configs/finetune.yaml -g 7, -m vit_base_patch16_384 -d cifar100 -s 384 384 -b 16
+        - python3 main.py fit --config configs/finetune.yaml -g 7, -m vit_base_patch16_384 -d cifar100 -s 384 384 -b 16
+        - python3 main.py fit --config configs/finetune.yaml -g 7, -m vit_base_patch16_384 -d cifar100 -s 384 384 -b 16
+        - python3 main.py fit --config configs/finetune.yaml -g 7, -m r50_vit_base_patch16_224 -d cifar100
+        - python3 main.py fit --config configs/finetune.yaml -g 7, -m r50_vit_base_patch16_224 -d cifar100
+        - python3 main.py fit --config configs/finetune.yaml -g 7, -m r50_vit_base_patch16_224 -d cifar100
