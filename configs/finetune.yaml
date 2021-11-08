@@ -1,6 +1,7 @@
 # 0. project setting & shortcut
 project_name: "hankyul2/ImageClassification"
 short_id: ''
+exp_no: 0
 
 shortcut:
   gpus: '0,'

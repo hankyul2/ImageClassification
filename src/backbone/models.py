@@ -1,3 +1,4 @@
+from src.backbone.efficientnet import get_efficientnet
 from src.backbone.hybrid import get_hybrid
 from src.backbone.mobile_net_v2 import get_mobilenet_v2
 from src.backbone.resnet import get_resnet
@@ -13,6 +14,8 @@ def get_model(model_name: str, **kwargs):
         model = get_resnet(model_name, **kwargs)
     elif model_name.startswith('vit'):
         model = get_vit(model_name, **kwargs)
+    elif model_name.startswith('efficientnet'):
+        model = get_efficientnet(model_name, **kwargs)
     elif model_name.startswith('r50'):
         model = get_hybrid(model_name, **kwargs)
     elif model_name.startswith('mobilenet_v2'):

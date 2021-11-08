@@ -1,5 +1,7 @@
 import os
+import warnings
 
+warnings.filterwarnings('ignore')
 os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
 
 from src.cli import MyLightningCLI
