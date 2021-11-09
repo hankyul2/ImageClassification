@@ -124,7 +124,9 @@ class ConvBNAct(nn.Sequential):
 
 class MBConvConfig:
     """Mobile Conv stage configuration used for MobileNet_v(2,3), EfficientNet"""
-    def __init__(self, expand_ratio, kernel, stride, in_ch, out_ch, layers, depth_mult=1.0, width_mult=1.0,
+    def __init__(self, expand_ratio, kernel, stride, in_ch, out_ch, layers,
+                 depth_mult=1.0, width_mult=1.0,
+                 act=nn.ReLU6, norm_layer=nn.BatchNorm2d,
                  use_se=True, se_act1=nn.ReLU, se_act2=nn.Sigmoid, se_reduction_ratio=4, se_divide=True):
         self.expand_ratio = expand_ratio
         self.kernel = kernel
@@ -132,6 +134,9 @@ class MBConvConfig:
         self.in_ch = self.adjust_channels(in_ch, width_mult)
         self.out_ch = self.adjust_channels(out_ch, width_mult)
         self.num_layers = self.adjust_depth(layers, depth_mult)
+
+        self.act = act
+        self.norm_layer = norm_layer
 
         self.use_se = use_se
         self.se_act1 = se_act1
@@ -163,15 +168,15 @@ class MBConvConfig:
 
 class MBConv(nn.Module):
     """MobileNet_v2 main building blocks (from torchvision)"""
-    def __init__(self, config, norm_layer, act=nn.ReLU6, sd_prob=0.0):
+    def __init__(self, config, sd_prob=0.0):
         super(MBConv, self).__init__()
         inter_channel = config.adjust_channels(config.in_ch, config.expand_ratio)
         layers = []
         if config.expand_ratio != 1:
-            layers.append(ConvBNAct(config.in_ch, inter_channel, kernel_size=1, stride=1, norm_layer=norm_layer, act=act))
-        layers.append(ConvBNAct(inter_channel, inter_channel, kernel_size=config.kernel, stride=config.stride, groups=inter_channel, norm_layer=norm_layer, act=act))
+            layers.append(ConvBNAct(config.in_ch, inter_channel, kernel_size=1, stride=1, norm_layer=config.norm_layer, act=config.act))
+        layers.append(ConvBNAct(inter_channel, inter_channel, kernel_size=config.kernel, stride=config.stride, groups=inter_channel, norm_layer=config.norm_layer, act=config.act))
         layers.append(conv1x1(inter_channel, config.out_ch, stride=1))
-        layers.append(norm_layer(config.out_ch))
+        layers.append(config.norm_layer(config.out_ch))
         self.conv = nn.Sequential(*layers)
 
         self.inter_channel = inter_channel
@@ -187,11 +192,11 @@ class MBConv(nn.Module):
 
 class MBConvSE(MBConv):
     """EfficientNet main building blocks (from torchvision & timm works)"""
-    def __init__(self, config, norm_layer, act=nn.SiLU, sd_prob=0.0):
-        super(MBConvSE, self).__init__(config, norm_layer, act, sd_prob)
+    def __init__(self, config, sd_prob=0.0):
+        super(MBConvSE, self).__init__(config, sd_prob)
         self.block = copy.deepcopy(self.conv)
         self.block[-2] = SEUnit(self.inter_channel, config.se_reduce, act1=config.se_act1, act2=config.se_act2)
-        self.block[-1] = ConvBNAct(self.inter_channel, config.out_ch, kernel_size=1, stride=1, norm_layer=norm_layer, act=nn.Identity)
+        self.block[-1] = ConvBNAct(self.inter_channel, config.out_ch, kernel_size=1, stride=1, norm_layer=config.norm_layer, act=nn.Identity)
         del self.conv
 
     def forward(self, x):

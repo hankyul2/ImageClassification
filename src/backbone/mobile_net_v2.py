@@ -38,7 +38,7 @@ class MobileNetV2(nn.Module):
     def make_layers(self, layer_info, block):
         layers = []
         for i in range(layer_info.num_layers):
-            layers.append(block(layer_info, norm_layer=self.norm_layer, act=self.act, sd_prob=self.get_sd_prob()))
+            layers.append(block(layer_info, sd_prob=self.get_sd_prob()))
             layer_info.in_ch = layer_info.out_ch
             layer_info.stride = 1
         return layers
@@ -54,7 +54,7 @@ class MobileNetV2(nn.Module):
 
 def get_mobilenet_v2(model_name:str, pretrained=True, **kwargs) -> nn.Module:
     """Get mobilenet_v2 only support 1 model"""
-    mbconfig = partial(MBConvConfig, depth_mult=1.0, width_mult=1.0)
+    mbconfig = partial(MBConvConfig, depth_mult=1.0, width_mult=1.0, act=nn.ReLU6, norm_layer=nn.BatchNorm2d)
 
     residual_config = [
         #    expand k  s  in  out layers
