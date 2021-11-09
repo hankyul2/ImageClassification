@@ -58,13 +58,13 @@ def get_mobilenet_v2(model_name:str, pretrained=True, **kwargs) -> nn.Module:
 
     residual_config = [
         #    expand k  s  in  out layers
-        mbconfig(1, 3, 1, 32, 16, 1),
-        mbconfig(6, 3, 2, 16, 24, 2),
-        mbconfig(6, 3, 2, 24, 32, 3),
-        mbconfig(6, 3, 2, 32, 64, 4),
-        mbconfig(6, 3, 1, 64, 96, 3),
-        mbconfig(6, 3, 2, 96, 160, 3),
-        mbconfig(6, 3, 1, 160, 320, 1),
+        mbconfig(1, 3, 1, 32, 16, 1, act=nn.ReLU6, use_se=False),
+        mbconfig(6, 3, 2, 16, 24, 2, act=nn.ReLU6, use_se=False),
+        mbconfig(6, 3, 2, 24, 32, 3, act=nn.ReLU6, use_se=False),
+        mbconfig(6, 3, 2, 32, 64, 4, act=nn.ReLU6, use_se=False),
+        mbconfig(6, 3, 1, 64, 96, 3, act=nn.ReLU6, use_se=False),
+        mbconfig(6, 3, 2, 96, 160, 3, act=nn.ReLU6, use_se=False),
+        mbconfig(6, 3, 1, 160, 320, 1, act=nn.ReLU6, use_se=False),
     ]
 
     model = MobileNetV2(residual_config)

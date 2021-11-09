@@ -4,7 +4,7 @@ from functools import partial
 from torch import nn
 
 from src.backbone.layers.conv_block import MBConvConfig, mobilenet_v2_init, MBConvSE
-from src.backbone.mobile_net_v2 import MobileNetV2
+from src.backbone.mobilenet_v2 import MobileNetV2
 from src.backbone.utils import load_from_zoo
 
 
@@ -34,7 +34,7 @@ def get_efficientnet(model_name, pretrained, **kwargs):
     norm_layer = nn.BatchNorm2d if int(model_name[-1]) < 5 else partial(nn.BatchNorm2d, eps=0.001, momentum=0.01)
 
     mbconfig = partial(MBConvConfig, depth_mult=depth_mult, width_mult=width_mult, act=nn.SiLU, norm_layer=nn.BatchNorm2d,
-                       use_se=True, se_act1=partial(nn.SiLU, inplace=True), se_reduction_ratio=4, se_divide=True)
+                       use_se=True, se_act1=partial(nn.SiLU, inplace=True), se_reduction_ratio=4, se_reduce_mode='base')
 
     residual_config = [
         #    expand k  s  in  out layers

@@ -127,7 +127,7 @@ class MBConvConfig:
     def __init__(self, expand_ratio, kernel, stride, in_ch, out_ch, layers,
                  depth_mult=1.0, width_mult=1.0,
                  act=nn.ReLU6, norm_layer=nn.BatchNorm2d,
-                 use_se=True, se_act1=nn.ReLU, se_act2=nn.Sigmoid, se_reduction_ratio=4, se_divide=True):
+                 use_se=True, se_act1=nn.ReLU, se_act2=nn.Sigmoid, se_reduction_ratio=4, se_reduce_mode='adjust'):
         self.expand_ratio = expand_ratio
         self.kernel = kernel
         self.stride = stride
@@ -141,7 +141,15 @@ class MBConvConfig:
         self.use_se = use_se
         self.se_act1 = se_act1
         self.se_act2 = se_act2
-        self.se_reduce = se_reduction_ratio * self.expand_ratio if se_divide else 1
+        self.se_reduction_ratio = se_reduction_ratio
+        self.se_reduce_mode = se_reduce_mode
+
+    @property
+    def se_reduce(self):
+        if self.se_reduce_mode == 'adjust':
+            return self.adjust_channels(self.in_ch, self.expand_ratio / self.se_reduction_ratio)
+        else:
+            return self.in_ch / self.se_reduction_ratio
 
     def __repr__(self):
         s = self.__class__.__name__ + '('
@@ -159,10 +167,10 @@ class MBConvConfig:
         return int(math.ceil(layers * factor))
 
     @staticmethod
-    def adjust_channels(channel, factor):
+    def adjust_channels(channel, factor, divisible=8):
         new_channel = channel * factor
-        divisible_channel = max(8, (int(new_channel + 4) // 8) * 8)
-        divisible_channel += 8 if divisible_channel < 0.9 * new_channel else 0
+        divisible_channel = max(divisible, (int(new_channel + divisible / 2) // divisible) * divisible)
+        divisible_channel += divisible if divisible_channel < 0.9 * new_channel else 0
         return divisible_channel
 
 
@@ -194,9 +202,11 @@ class MBConvSE(MBConv):
     """EfficientNet main building blocks (from torchvision & timm works)"""
     def __init__(self, config, sd_prob=0.0):
         super(MBConvSE, self).__init__(config, sd_prob)
-        self.block = copy.deepcopy(self.conv)
-        self.block[-2] = SEUnit(self.inter_channel, config.se_reduce, act1=config.se_act1, act2=config.se_act2)
-        self.block[-1] = ConvBNAct(self.inter_channel, config.out_ch, kernel_size=1, stride=1, norm_layer=config.norm_layer, act=nn.Identity)
+        block = [*copy.deepcopy(self.conv[:-2])]
+        if config.use_se:
+            block.append(SEUnit(self.inter_channel, config.se_reduce, act1=config.se_act1, act2=config.se_act2))
+        block.append(ConvBNAct(self.inter_channel, config.out_ch, kernel_size=1, stride=1, norm_layer=config.norm_layer, act=nn.Identity))
+        self.block = nn.Sequential(*block)
         del self.conv
 
     def forward(self, x):
@@ -207,11 +217,12 @@ class MBConvSE(MBConv):
 
 
 class SEUnit(nn.Module):
-    def __init__(self, in_channel, reduction_ratio=16, act1=nn.ReLU, act2=nn.Sigmoid):
+    def __init__(self, in_channel, hidden_dim=None, reduction_ratio=16, act1=nn.ReLU, act2=nn.Sigmoid):
         super(SEUnit, self).__init__()
+        hidden_dim = int(hidden_dim if hidden_dim else in_channel // reduction_ratio)
         self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc1 = conv1x1(in_channel, in_channel // reduction_ratio, bias=True)
-        self.fc2 = conv1x1(in_channel // reduction_ratio, in_channel, bias=True)
+        self.fc1 = conv1x1(in_channel, hidden_dim, bias=True)
+        self.fc2 = conv1x1(hidden_dim, in_channel, bias=True)
         self.act1 = act1()
         self.act2 = act2()
 
@@ -222,7 +233,7 @@ class SEUnit(nn.Module):
 class SEBasicBlock(BasicBlock):
     def __init__(self, *args, reduction_ratio=16, **kwargs):
         super(SEBasicBlock, self).__init__(*args, **kwargs)
-        self.se_module = SEUnit(self.out_channels, reduction_ratio)
+        self.se_module = SEUnit(self.out_channels, reduction_ratio=reduction_ratio)
 
     def forward(self, x):
         out = F.relu(self.bn1(self.conv1(x)))
@@ -232,7 +243,7 @@ class SEBasicBlock(BasicBlock):
 class SEBottleNeck(BottleNeck):
     def __init__(self, *args, reduction_ratio=16, **kwargs):
         super(SEBottleNeck, self).__init__(*args, **kwargs)
-        self.se_module = SEUnit(self.out_channels, reduction_ratio)
+        self.se_module = SEUnit(self.out_channels, reduction_ratio=reduction_ratio)
 
     def forward(self, x):
         out = F.relu(self.bn1(self.conv1(x)))
