@@ -49,7 +49,7 @@ This is basic Image Classification Repo. It contains pytorch implemented image c
 | MobileNet_v3<br />([tf.dev](), [summary]())                  | ImageNet      |         |          |
 | EfficientNet_b0<br />([tf.dev](), [summary]())               | ImageNet      | 97.2    | 86.2     |
 | EfficientNet_b1<br />([tf.dev](), [summary]())               | ImageNet      | 97.5    | 87.2     |
-| EfficientNet_b2<br />([tf.dev](), [summary]())               | ImageNet      |         |          |
+| EfficientNet_b2<br />([tf.dev](), [summary]())               | ImageNet      | 97.8    | 87.5     |
 | EfficientNet_b3<br />([tf.dev](), [summary]())               | ImageNet      |         |          |
 | EfficientNet_b4<br />([tf.dev](), [summary]())               | ImageNet      |         |          |
 | ViT_base_16_224<br />(([tf.dev](), [summary](docs/vit_base_patch16_224.md)) | ImageNet21k   | 98.6    | 92.0     |
