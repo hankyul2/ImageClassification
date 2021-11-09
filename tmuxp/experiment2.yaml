@@ -1,0 +1,25 @@
+session_name: experiment2
+windows:
+  - window_name: cifar10
+    shell_command_before:
+      - source ~/.zshrc
+    panes:
+      - shell_command:
+        - python3 main.py fit --config configs/finetune.yaml -g 3, -m mobilenet_v3_small -b 128 -d cifar10 -s 224 224 --exp_no 2
+        - python3 main.py fit --config configs/finetune.yaml -g 3, -m mobilenet_v3_small -b 128 -d cifar10 -s 224 224 --exp_no 2
+        - python3 main.py fit --config configs/finetune.yaml -g 3, -m mobilenet_v3_small -b 128 -d cifar10 -s 224 224 --exp_no 2
+        - python3 main.py fit --config configs/finetune.yaml -g 3, -m mobilenet_v3_large -b 128 -d cifar10 -s 224 224 --exp_no 2
+        - python3 main.py fit --config configs/finetune.yaml -g 3, -m mobilenet_v3_large -b 128 -d cifar10 -s 224 224 --exp_no 2
+        - python3 main.py fit --config configs/finetune.yaml -g 3, -m mobilenet_v3_large -b 128 -d cifar10 -s 224 224 --exp_no 2
+
+  - window_name: cifar100
+    shell_command_before:
+      - source ~/.zshrc
+    panes:
+      - shell_command:
+        - python3 main.py fit --config configs/finetune.yaml -g 5, -m mobilenet_v3_small -b 128 -d cifar100 -s 224 224 --exp_no 2
+        - python3 main.py fit --config configs/finetune.yaml -g 5, -m mobilenet_v3_small -b 128 -d cifar100 -s 224 224 --exp_no 2
+        - python3 main.py fit --config configs/finetune.yaml -g 5, -m mobilenet_v3_small -b 128 -d cifar100 -s 224 224 --exp_no 2
+        - python3 main.py fit --config configs/finetune.yaml -g 5, -m mobilenet_v3_large -b 128 -d cifar100 -s 224 224 --exp_no 2
+        - python3 main.py fit --config configs/finetune.yaml -g 5, -m mobilenet_v3_large -b 128 -d cifar100 -s 224 224 --exp_no 2
+        - python3 main.py fit --config configs/finetune.yaml -g 5, -m mobilenet_v3_large -b 128 -d cifar100 -s 224 224 --exp_no 2
