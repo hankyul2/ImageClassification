@@ -47,8 +47,11 @@ This is basic Image Classification Repo. It contains pytorch implemented image c
 | SeNet101<br />([tf.dev](), [summary]())                      | ImageNet      | 97.4    | 86.9     |
 | MobileNet_v2<br />([tf.dev](), [summary]())                  | ImageNet      | 96.8    | 82.4     |
 | MobileNet_v3<br />([tf.dev](), [summary]())                  | ImageNet      |         |          |
-| EfficientNet_b0<br />([tf.dev](), [summary]())               | ImageNet      |         |          |
-| EfficientNet_b1<br />([tf.dev](), [summary]())               | ImageNet      |         |          |
+| EfficientNet_b0<br />([tf.dev](), [summary]())               | ImageNet      | 97.2    | 86.2     |
+| EfficientNet_b1<br />([tf.dev](), [summary]())               | ImageNet      | 97.5    | 87.2     |
+| EfficientNet_b2<br />([tf.dev](), [summary]())               | ImageNet      |         |          |
+| EfficientNet_b3<br />([tf.dev](), [summary]())               | ImageNet      |         |          |
+| EfficientNet_b4<br />([tf.dev](), [summary]())               | ImageNet      |         |          |
 | ViT_base_16_224<br />(([tf.dev](), [summary](docs/vit_base_patch16_224.md)) | ImageNet21k   | 98.6    | 92.0     |
 | ViT_base_32_224<br />(([tf.dev](), [summary](docs/vit_base_patch32_224.md)) | ImageNet21k   | 98.2    | 89.9     |
 | ViT_large_16_224<br />([tf.dev](), ([summary](docs/vit_large_patch16_224.md)) | ImageNet21k   | 99.1    |          |
