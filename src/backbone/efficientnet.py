@@ -33,7 +33,9 @@ def get_efficientnet(model_name, pretrained, **kwargs):
 
     norm_layer = nn.BatchNorm2d if int(model_name[-1]) < 5 else partial(nn.BatchNorm2d, eps=0.001, momentum=0.01)
 
-    mbconfig = partial(MBConvConfig, depth_mult=depth_mult, width_mult=width_mult)
+    mbconfig = partial(MBConvConfig, depth_mult=depth_mult, width_mult=width_mult,
+                       use_se=True, se_act1=partial(nn.SiLU, inplace=True), se_reduction_ratio=4, se_divide=True)
+
     residual_config = [
         #    expand k  s  in  out layers
         mbconfig(1, 3, 1, 32, 16, 1),

@@ -123,14 +123,20 @@ class ConvBNAct(nn.Sequential):
 
 
 class MBConvConfig:
-    """Mobile Conv stage configuration used for MobileNet_v2, EfficientNet"""
-    def __init__(self, expand_ratio, kernel, stride, in_ch, out_ch, layers, depth_mult=1.0, width_mult=1.0):
+    """Mobile Conv stage configuration used for MobileNet_v(2,3), EfficientNet"""
+    def __init__(self, expand_ratio, kernel, stride, in_ch, out_ch, layers, depth_mult=1.0, width_mult=1.0,
+                 use_se=True, se_act1=nn.ReLU, se_act2=nn.Sigmoid, se_reduction_ratio=4, se_divide=True):
         self.expand_ratio = expand_ratio
         self.kernel = kernel
         self.stride = stride
         self.in_ch = self.adjust_channels(in_ch, width_mult)
         self.out_ch = self.adjust_channels(out_ch, width_mult)
         self.num_layers = self.adjust_depth(layers, depth_mult)
+
+        self.use_se = use_se
+        self.se_act1 = se_act1
+        self.se_act2 = se_act2
+        self.se_reduce = se_reduction_ratio * self.expand_ratio if se_divide else 1
 
     def __repr__(self):
         s = self.__class__.__name__ + '('
@@ -184,7 +190,7 @@ class MBConvSE(MBConv):
     def __init__(self, config, norm_layer, act=nn.SiLU, sd_prob=0.0):
         super(MBConvSE, self).__init__(config, norm_layer, act, sd_prob)
         self.block = copy.deepcopy(self.conv)
-        self.block[-2] = SEUnit(self.inter_channel, config.expand_ratio * 4, act1=partial(act, inplace=True))
+        self.block[-2] = SEUnit(self.inter_channel, config.se_reduce, act1=config.se_act1, act2=config.se_act2)
         self.block[-1] = ConvBNAct(self.inter_channel, config.out_ch, kernel_size=1, stride=1, norm_layer=norm_layer, act=nn.Identity)
         del self.conv
 
