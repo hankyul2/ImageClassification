@@ -29,10 +29,9 @@ def get_mobilenet_v3(model_name:str, pretrained=True, **kwargs) -> nn.Module:
     """Get mobilenet_v3 large model
 
     The changes from mobilenet_v3:
-        - change input channel to 16 to avoid redundancy
-        - apply nn.Hardswish to reduce computational cost
-        - apply se unit (from MnasNet)
-        - change last stage structure to reduce computational cost
+        - change input channel to 16 and last stage structure to avoid redundancy
+        - change activation to nn.relu, nn.Hardsigmoid, nn.Hardswish to reduce computational cost
+        - apply se unit (larger hidden_dim than efficientnet)
     """
 
     mbconfig = partial(MBConvConfig, depth_mult=1.0, width_mult=1.0, norm_layer=nn.BatchNorm2d,
