@@ -127,7 +127,8 @@ class MBConvConfig:
     def __init__(self, expand_ratio, kernel, stride, in_ch, out_ch, layers,
                  depth_mult=1.0, width_mult=1.0,
                  act=nn.ReLU6, norm_layer=nn.BatchNorm2d,
-                 use_se=True, se_act1=nn.ReLU, se_act2=nn.Sigmoid, se_reduction_ratio=4, se_reduce_mode='adjust'):
+                 use_se=True, se_act1=nn.ReLU, se_act2=nn.Sigmoid, se_reduction_ratio=4, se_reduce_mode='adjust',
+                 fused=False):
         self.expand_ratio = expand_ratio
         self.kernel = kernel
         self.stride = stride
@@ -143,6 +144,8 @@ class MBConvConfig:
         self.se_act2 = se_act2
         self.se_reduction_ratio = se_reduction_ratio
         self.se_reduce_mode = se_reduce_mode
+
+        self.fused = fused
 
     @property
     def se_reduce(self):
@@ -202,7 +205,12 @@ class MBConvSE(MBConv):
     """EfficientNet main building blocks (from torchvision & timm works)"""
     def __init__(self, config, sd_prob=0.0):
         super(MBConvSE, self).__init__(config, sd_prob)
-        block = [*copy.deepcopy(self.conv[:-2])]
+
+        if config.fused:
+            block = [ConvBNAct(config.in_ch, self.inter_channel, kernel_size=config.kernel, stride=config.stride,norm_layer=config.norm_layer, act=config.act)]
+        else:
+            block = [*copy.deepcopy(self.conv[:-2])]
+
         if config.use_se:
             block.append(SEUnit(self.inter_channel, config.se_reduce, act1=config.se_act1, act2=config.se_act2))
         block.append(ConvBNAct(self.inter_channel, config.out_ch, kernel_size=1, stride=1, norm_layer=config.norm_layer, act=nn.Identity))
