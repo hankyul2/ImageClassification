@@ -61,6 +61,7 @@ This is basic Image Classification Repo. It contains pytorch(pytorch-lightning) 
 
 - Pretrained weights are from timm or torchvision or [google vision-transformer github](https://github.com/google-research/vision_transformer) 
 - All scores are 3 times average scores
+- `efficientnet_v2` results is in [here](https://github.com/hankyul2/EfficientNetV2-pytorch)
 
 
 
